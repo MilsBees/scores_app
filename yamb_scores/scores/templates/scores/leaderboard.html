@@ -1,0 +1,54 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Player Leaderboard</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Player</th>
+        <th>
+          <a href="?sort=best" style="text-decoration: {% if sort_by == 'best' %}underline{% endif %}">Best</a>
+        </th>
+        <th>
+          <a href="?sort=avg" style="text-decoration: {% if sort_by == 'avg' %}underline{% endif %}">Average</a>
+        </th>
+        <th>
+          <a href="?sort=games" style="text-decoration: {% if sort_by == 'games' %}underline{% endif %}">Games</a>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in players %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.best_score|default:"—" }}</td>
+        <td>
+          {% if p.avg_score %}{{ p.avg_score|floatformat:1 }}{% else %}—{% endif %}
+        </td>
+        <td>{{ p.games_played }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No players yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2 style="margin-top: 2rem;">Scores Leaderboard</h2>
+  <table>
+    <thead>
+      <tr><th>Rank</th><th>Player</th><th>Score</th></tr>
+    </thead>
+    <tbody>
+      {% for score in top_scores %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ score.player.name }}</td>
+        <td>{{ score.score }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No scores yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

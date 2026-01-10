@@ -1,0 +1,19 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Recent Games</h2>
+  {% for game in games %}
+    <div class="card">
+      <strong>{{ game }}</strong>
+      <table>
+        <thead><tr><th>Player</th><th>Score</th></tr></thead>
+        <tbody>
+          {% for s in game.scores.all %}
+            <tr><td>{{ s.player.name }}</td><td>{{ s.score }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% empty %}
+    <p>No games recorded yet.</p>
+  {% endfor %}
+{% endblock %}
