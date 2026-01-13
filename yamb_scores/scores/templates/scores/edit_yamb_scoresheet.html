@@ -1,0 +1,170 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Edit Scoresheet - {{ scoresheet.player.name }}</h2>
+  <p style="font-size: 0.9rem; color: #666;">Game #{{ yamb_game.id }}</p>
+  
+  <form method="post">
+    {% csrf_token %}
+    <div class="card">
+      <h3>Player info</h3>
+      <div style="margin-bottom: 1rem;">
+        <label for="{{ form.player_name.id_for_label }}" style="font-weight: bold;">{{ form.player_name.label }}:</label>
+        {{ form.player_name }}
+      </div>
+      
+      <h3>Scoresheet</h3>
+      <div style="overflow-x: auto;">
+        <table class="yamb-scoresheet">
+          <thead>
+            <tr>
+              <th>Row</th>
+              <th>↓</th>
+              <th>↑</th>
+              <th>L</th>
+              <th>S</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td>
+              <td>{{ form.row_1_down }}</td>
+              <td>{{ form.row_1_up }}</td>
+              <td>{{ form.row_1_l }}</td>
+              <td>{{ form.row_1_s }}</td>
+              <td>{{ form.row_1_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td>
+              <td>{{ form.row_2_down }}</td>
+              <td>{{ form.row_2_up }}</td>
+              <td>{{ form.row_2_l }}</td>
+              <td>{{ form.row_2_s }}</td>
+              <td>{{ form.row_2_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td>
+              <td>{{ form.row_3_down }}</td>
+              <td>{{ form.row_3_up }}</td>
+              <td>{{ form.row_3_l }}</td>
+              <td>{{ form.row_3_s }}</td>
+              <td>{{ form.row_3_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td>
+              <td>{{ form.row_4_down }}</td>
+              <td>{{ form.row_4_up }}</td>
+              <td>{{ form.row_4_l }}</td>
+              <td>{{ form.row_4_s }}</td>
+              <td>{{ form.row_4_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td>
+              <td>{{ form.row_5_down }}</td>
+              <td>{{ form.row_5_up }}</td>
+              <td>{{ form.row_5_l }}</td>
+              <td>{{ form.row_5_s }}</td>
+              <td>{{ form.row_5_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>6</strong></td>
+              <td>{{ form.row_6_down }}</td>
+              <td>{{ form.row_6_up }}</td>
+              <td>{{ form.row_6_l }}</td>
+              <td>{{ form.row_6_s }}</td>
+              <td>{{ form.row_6_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>H</strong></td>
+              <td>{{ form.row_h_down }}</td>
+              <td>{{ form.row_h_up }}</td>
+              <td>{{ form.row_h_l }}</td>
+              <td>{{ form.row_h_s }}</td>
+              <td>{{ form.row_h_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>L</strong></td>
+              <td>{{ form.row_l_down }}</td>
+              <td>{{ form.row_l_up }}</td>
+              <td>{{ form.row_l_l }}</td>
+              <td>{{ form.row_l_s }}</td>
+              <td>{{ form.row_l_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>FH</strong></td>
+              <td>{{ form.row_fh_down }}</td>
+              <td>{{ form.row_fh_up }}</td>
+              <td>{{ form.row_fh_l }}</td>
+              <td>{{ form.row_fh_s }}</td>
+              <td>{{ form.row_fh_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>C</strong></td>
+              <td>{{ form.row_c_down }}</td>
+              <td>{{ form.row_c_up }}</td>
+              <td>{{ form.row_c_l }}</td>
+              <td>{{ form.row_c_s }}</td>
+              <td>{{ form.row_c_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>S</strong></td>
+              <td>{{ form.row_s_down }}</td>
+              <td>{{ form.row_s_up }}</td>
+              <td>{{ form.row_s_l }}</td>
+              <td>{{ form.row_s_s }}</td>
+              <td>{{ form.row_s_total }}</td>
+            </tr>
+            <tr>
+              <td><strong>P</strong></td>
+              <td>{{ form.row_p_down }}</td>
+              <td>{{ form.row_p_up }}</td>
+              <td>{{ form.row_p_l }}</td>
+              <td>{{ form.row_p_s }}</td>
+              <td>{{ form.row_p_total }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div style="margin-top: 1rem;">
+        <label for="{{ form.final_score.id_for_label }}" style="font-weight: bold;">{{ form.final_score.label }}:</label>
+        {{ form.final_score }}
+      </div>
+    </div>
+    
+    <button type="submit" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">Save changes</button>
+    <a href="{% url 'scores:yamb_detail' yamb_game.id %}" style="padding: 0.5rem 1rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-left: 0.5rem;">Cancel</a>
+  </form>
+
+  <style>
+    .yamb-scoresheet {
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+    .yamb-scoresheet th, .yamb-scoresheet td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .yamb-scoresheet th {
+      background: #f5f5f5;
+      font-weight: bold;
+    }
+    .yamb-scoresheet input[type="number"] {
+      width: 60px;
+      padding: 0.25rem;
+      border: none;
+      text-align: center;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    input[type="text"] {
+      width: 200px;
+    }
+  </style>
+{% endblock %}

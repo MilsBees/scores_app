@@ -34,13 +34,31 @@
     </tbody>
   </table>
 
-  <h2 style="margin-top: 2rem;">Scores Leaderboard</h2>
+  <h2 style="margin-top: 2rem;">High Scores Leaderboard</h2>
   <table>
     <thead>
       <tr><th>Rank</th><th>Player</th><th>Score</th></tr>
     </thead>
     <tbody>
       {% for score in top_scores %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ score.player.name }}</td>
+        <td>{{ score.score }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No scores yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2 style="margin-top: 2rem;">Low Scores Leaderboard</h2>
+  <table>
+    <thead>
+      <tr><th>Rank</th><th>Player</th><th>Score</th></tr>
+    </thead>
+    <tbody>
+      {% for score in low_scores %}
       <tr>
         <td>{{ forloop.counter }}</td>
         <td>{{ score.player.name }}</td>

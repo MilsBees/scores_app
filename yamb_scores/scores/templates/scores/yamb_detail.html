@@ -1,0 +1,148 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Yamb Game #{{ yamb_game.id }}</h2>
+  <p style="font-size: 0.9rem; color: #666;">Created: {{ yamb_game.created_at|date:"Y-m-d H:i" }}</p>
+  
+  {% for scoresheet in scoresheets %}
+    <h3>{{ scoresheet.player.name }}</h3>
+    <div class="card" style="overflow-x: auto;">
+      <table class="yamb-scoresheet">
+        <thead>
+          <tr>
+            <th>Row</th>
+            <th>↓</th>
+            <th>↑</th>
+            <th>L</th>
+            <th>S</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1</strong></td>
+            <td>{{ scoresheet.row_1_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_1_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_1_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_1_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_1_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>2</strong></td>
+            <td>{{ scoresheet.row_2_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_2_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_2_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_2_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_2_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>3</strong></td>
+            <td>{{ scoresheet.row_3_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_3_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_3_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_3_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_3_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>4</strong></td>
+            <td>{{ scoresheet.row_4_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_4_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_4_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_4_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_4_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>5</strong></td>
+            <td>{{ scoresheet.row_5_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_5_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_5_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_5_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_5_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>6</strong></td>
+            <td>{{ scoresheet.row_6_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_6_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_6_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_6_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_6_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>H</strong></td>
+            <td>{{ scoresheet.row_h_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_h_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_h_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_h_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_h_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>L</strong></td>
+            <td>{{ scoresheet.row_l_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_l_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_l_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_l_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_l_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>FH</strong></td>
+            <td>{{ scoresheet.row_fh_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_fh_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_fh_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_fh_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_fh_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>C</strong></td>
+            <td>{{ scoresheet.row_c_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_c_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_c_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_c_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_c_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>S</strong></td>
+            <td>{{ scoresheet.row_s_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_s_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_s_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_s_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_s_total|default:"—" }}</td>
+          </tr>
+          <tr>
+            <td><strong>P</strong></td>
+            <td>{{ scoresheet.row_p_down|default:"—" }}</td>
+            <td>{{ scoresheet.row_p_up|default:"—" }}</td>
+            <td>{{ scoresheet.row_p_l|default:"—" }}</td>
+            <td>{{ scoresheet.row_p_s|default:"—" }}</td>
+            <td>{{ scoresheet.row_p_total|default:"—" }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div style="margin-top: 1rem; font-size: 1.1rem;">
+      <strong>Score: {{ scoresheet.final_score|default:"—" }}</strong>
+    </div>
+    
+    <div style="margin-top: 1rem; margin-bottom: 2rem;">
+      <a href="{% url 'scores:edit_yamb_scoresheet' yamb_game.id scoresheet.id %}" style="padding: 0.5rem 1rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-right: 0.5rem;">Edit</a>
+      <a href="{% url 'scores:delete_yamb_scoresheet' yamb_game.id scoresheet.id %}" style="padding: 0.5rem 1rem; background: #dc3545; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Delete</a>
+    </div>
+  {% endfor %}
+  
+  <p><a href="{% url 'scores:yamb_list' %}" style="padding: 0.5rem 1rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 1rem;">Back to scoresheets</a></p>
+
+  <style>
+    .yamb-scoresheet {
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    .yamb-scoresheet th, .yamb-scoresheet td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .yamb-scoresheet th {
+      background: #f5f5f5;
+      font-weight: bold;
+    }
+  </style>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Yamb Scoresheets</h2>
+  <p><a href="{% url 'scores:new_yamb' %}" style="padding: 0.5rem 1rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">+ New Scoresheet</a></p>
+  
+  {% for game in yamb_games %}
+    <div class="card">
+      <strong>{{ game }}</strong>
+      <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">{{ game.created_at|date:"Y-m-d H:i" }}</div>
+      <div style="margin-top: 0.75rem;">
+        {% for scoresheet in game.yamb_scoresheets.all %}
+          <a href="{% url 'scores:yamb_detail' game.id %}" style="margin-right: 1rem;">{{ scoresheet.player.name }}: {{ scoresheet.final_score|default:"—" }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  {% empty %}
+    <p>No scoresheets yet. <a href="{% url 'scores:new_yamb' %}">Create one</a></p>
+  {% endfor %}
+{% endblock %}
