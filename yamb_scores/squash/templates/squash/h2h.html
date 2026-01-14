@@ -1,0 +1,55 @@
+{% extends "squash/base.html" %}
+{% block content %}
+  <h2>Head to Head</h2>
+  
+  <div class="card">
+    <label for="player-select">Select player:</label>
+    <select id="player-select" onchange="window.location = '?player=' + this.value">
+      <option value="">-- Choose a player --</option>
+      {% for player in players %}
+      <option value="{{ player.id }}" {% if selected_player.id == player.id %}selected{% endif %}>{{ player.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  {% if selected_player %}
+    <h3>{{ selected_player.name }}'s Head to Head Record</h3>
+    
+    {% if h2h_data %}
+      <table>
+        <thead>
+          <tr>
+            <th>Opponent</th>
+            <th>Points For</th>
+            <th>Points Against</th>
+            <th>Point Diff</th>
+            <th>Sets Won</th>
+            <th>Sets Lost</th>
+            <th>Match Record (W-L-D)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in h2h_data %}
+          <tr>
+            <td><strong>{{ record.opponent.name }}</strong></td>
+            <td>{{ record.points_for }}</td>
+            <td>{{ record.points_against }}</td>
+            <td>{{ record.point_diff }}</td>
+            <td>{{ record.sets_won }}</td>
+            <td>{{ record.sets_lost }}</td>
+            <td>{{ record.matches_won }}-{{ record.matches_lost }}-{{ record.matches_drawn }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No head to head data available.</p>
+    {% endif %}
+  {% else %}
+    <p>Select a player to see their head to head matchups.</p>
+  {% endif %}
+
+  <style>
+    select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+  </style>
+{% endblock %}

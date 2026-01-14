@@ -1,0 +1,28 @@
+{% extends "squash/base.html" %}
+{% block content %}
+  <h2>Matches</h2>
+  
+  {% for match in matches %}
+    <div class="card">
+      <strong>{{ match.player_1.name }} vs {{ match.player_2.name }}</strong>
+      <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">{{ match.date_played }}</div>
+      <table style="margin-top: 0.75rem; font-size: 0.95rem;">
+        <thead>
+          <tr><th>Set</th><th>{{ match.player_1.name }}</th><th>{{ match.player_2.name }}</th><th>Winner</th></tr>
+        </thead>
+        <tbody>
+          {% for set in match.sets.all %}
+          <tr>
+            <td>Set {{ set.set_number }}</td>
+            <td>{{ set.player_1_points }}</td>
+            <td>{{ set.player_2_points }}</td>
+            <td>{{ set.winner.name|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% empty %}
+    <p>No matches recorded yet.</p>
+  {% endfor %}
+{% endblock %}

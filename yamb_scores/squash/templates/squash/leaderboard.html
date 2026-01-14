@@ -1,0 +1,32 @@
+{% extends "squash/base.html" %}
+{% block content %}
+  <h2>Leaderboard</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Player</th>
+        <th>Total Points</th>
+        <th>Sets Won</th>
+        <th>Total Sets</th>
+        <th>Match Record (W-L-D)</th>
+        <th>Last Match</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in player_stats %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ stat.player.name }}</td>
+        <td>{{ stat.total_points }}</td>
+        <td>{{ stat.total_sets_won }}</td>
+        <td>{{ stat.total_sets }}</td>
+        <td>{{ stat.matches_won }}-{{ stat.matches_lost }}-{{ stat.matches_drawn }}</td>
+        <td>{{ stat.last_match_date }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7">No matches recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

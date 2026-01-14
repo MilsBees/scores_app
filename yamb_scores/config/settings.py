@@ -31,7 +31,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'scores',
+    'home',
+    'squash',
+    'yamb',
 ]
 
 MIDDLEWARE = [
@@ -44,7 +46,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'yamb_scores.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -61,7 +63,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'yamb_scores.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
