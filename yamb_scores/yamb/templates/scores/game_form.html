@@ -3,6 +3,27 @@
   <h2>New Game</h2>
   <form method="post" id="game-form">
     {% csrf_token %}
+    
+    {% if formset.non_form_errors %}
+    <div class="error-message">
+      <strong>Error:</strong>
+      {{ formset.non_form_errors }}
+    </div>
+    {% endif %}
+    
+    {% for form in formset.forms %}
+      {% if form.errors %}
+        <div class="error-message">
+          <strong>Error in row {{ forloop.counter }}:</strong>
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    
     <h3>Players and scores</h3>
     <div class="card">
       {{ formset.management_form }}
@@ -20,7 +41,9 @@
             <td>{{ form.score }}</td>
             <td>
               <input type="hidden" name="scores-{{ forloop.counter0 }}-DELETE">
-              <button type="button" class="delete-row">Delete</button>
+              {% if forloop.counter > 1 %}
+                <button type="button" class="delete-row">Delete</button>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
