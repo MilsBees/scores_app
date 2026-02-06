@@ -1,0 +1,124 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Player Statistics</h2>
+
+  <div class="card">
+    <label for="player-select">Select player:</label>
+    <select id="player-select" onchange="window.location = '?player=' + this.value">
+      <option value="">-- Choose a player --</option>
+      {% for player in players %}
+        <option value="{{ player.id }}" {% if selected_player and selected_player.id == player.id %}selected{% endif %}>
+          {{ player.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {% if selected_player %}
+    <h3>{{ selected_player.name }}</h3>
+
+    {% if stats.games_played %}
+      <div class="card">
+        <strong>Summary</strong>
+        <table>
+          <tbody>
+            <tr>
+              <th style="width: 220px;">Games played</th>
+              <td>{{ stats.games_played }}</td>
+            </tr>
+            <tr>
+              <th>Average score</th>
+              <td>{% if stats.avg_score %}{{ stats.avg_score|floatformat:1 }}{% else %}—{% endif %}</td>
+            </tr>
+            <tr>
+              <th>Best score</th>
+              <td>{{ stats.best_score|default:"—" }}</td>
+            </tr>
+            <tr>
+              <th>Worst score</th>
+              <td>{{ stats.worst_score|default:"—" }}</td>
+            </tr>
+            <tr>
+              <th>Last played</th>
+              <td>
+                {% if last_score %}
+                  {{ last_score.game.played_at|date:"Y-m-d" }} — {{ last_score.score }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Recent Games</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in recent_scores %}
+            <tr>
+              <td>{{ s.game.played_at|date:"Y-m-d" }}</td>
+              <td>{{ s.score }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="2">No games yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 2rem;">Personal Records</h3>
+      <div class="card">
+        <strong>Top 5</strong>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Score</th></tr>
+          </thead>
+          <tbody>
+            {% for s in top_scores %}
+              <tr>
+                <td>{{ s.game.played_at|date:"Y-m-d" }}</td>
+                <td>{{ s.score }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="2">No games yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <strong>Bottom 5</strong>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Score</th></tr>
+          </thead>
+          <tbody>
+            {% for s in low_scores %}
+              <tr>
+                <td>{{ s.game.played_at|date:"Y-m-d" }}</td>
+                <td>{{ s.score }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="2">No games yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No games found for this player yet.</p>
+    {% endif %}
+  {% else %}
+    <p>Select a player to see their statistics.</p>
+  {% endif %}
+
+  <style>
+    select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+    table th { font-weight: 600; }
+  </style>
+{% endblock %}

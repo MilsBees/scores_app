@@ -16,9 +16,44 @@ A Django web application for recording and tracking scores from games of Yamb (a
 
 ## Running locally
 
-python3 -m venv venv
-source venv/bin/activate
+### Windows (VS Code + PowerShell)
+
+From the repo root:
+
+```powershell
+# Create + activate a virtual environment
+python -m venv venv
+
+# If activation is blocked, run this once per terminal session:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+./venv/Scripts/Activate.ps1
+
+# Install dependencies
+python -m pip install -r requirements.txt
+
+# Create a local .env (optional, but recommended for DEBUG=True)
+Set-Content -Path ./yamb_scores/.env -Value "DEBUG=True`nSECRET_KEY=dev-secret-key"
+
+# Run the app
 cd yamb_scores
-python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
+```
+
+Then open http://127.0.0.1:8000/
+
+### macOS / Linux
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+
+# Optional but recommended
+printf "DEBUG=True\nSECRET_KEY=dev-secret-key\n" > yamb_scores/.env
+
+cd yamb_scores
+python manage.py migrate
+python manage.py runserver
+```

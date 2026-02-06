@@ -48,6 +48,11 @@ def new_game(request):
 def leaderboard(request):
     # Get sort parameter from query string (default to 'avg')
     sort_by = request.GET.get('sort', 'avg')
+    direction = request.GET.get('dir', 'desc')
+    if sort_by not in {'best', 'avg', 'games'}:
+        sort_by = 'avg'
+    if direction not in {'asc', 'desc'}:
+        direction = 'desc'
     
     # Annotate players with stats
     players = Player.objects.annotate(
@@ -56,13 +61,15 @@ def leaderboard(request):
         games_played=Count('scores__game', distinct=True),
     )
     
+    prefix = '-' if direction == 'desc' else ''
+
     # Sort based on query parameter
     if sort_by == 'best':
-        players = players.order_by('-best_score')
+        players = players.order_by(f'{prefix}best_score')
     elif sort_by == 'games':
-        players = players.order_by('-games_played')
+        players = players.order_by(f'{prefix}games_played')
     else:  # default to avg
-        players = players.order_by('-avg_score')
+        players = players.order_by(f'{prefix}avg_score')
     
     # Get top 10 highest individual scores
     top_scores = Score.objects.select_related('player').order_by('-score')[:10]
@@ -75,6 +82,12 @@ def leaderboard(request):
         'top_scores': top_scores,
         'low_scores': low_scores,
         'sort_by': sort_by,
+        'dir': direction,
+        'sort_links': {
+            'best': f"sort=best&dir={'asc' if (sort_by == 'best' and direction == 'desc') else 'desc'}",
+            'avg': f"sort=avg&dir={'asc' if (sort_by == 'avg' and direction == 'desc') else 'desc'}",
+            'games': f"sort=games&dir={'asc' if (sort_by == 'games' and direction == 'desc') else 'desc'}",
+        },
     }
     return render(request, 'scores/leaderboard.html', context)
 
@@ -155,3 +168,52 @@ def delete_yamb_scoresheet(request, game_pk, scoresheet_pk):
         'yamb_game': yamb_game,
         'scoresheet': scoresheet
     })
+
+
+def player_stats(request):
+    """Landing + detail page for player statistics based on Game/Score (same source as leaderboard)."""
+    players = (
+        Player.objects.annotate(games_played=Count("scores__game", distinct=True)).order_by("name")
+    )
+
+    selected_player = None
+    stats = None
+    recent_scores = []
+    top_scores = []
+    low_scores = []
+    last_score = None
+
+    player_id = request.GET.get("player")
+    if player_id:
+        selected_player = get_object_or_404(Player, pk=player_id)
+
+        scores_qs = (
+            Score.objects.filter(player=selected_player)
+            .select_related("game")
+        )
+
+        stats = scores_qs.aggregate(
+            avg_score=Avg("score"),
+            best_score=Max("score"),
+            worst_score=Min("score"),
+            games_played=Count("game", distinct=True),
+        )
+
+        last_score = scores_qs.order_by("-game__played_at").first()
+        recent_scores = list(scores_qs.order_by("-game__played_at")[:10])
+        top_scores = list(scores_qs.order_by("-score", "-game__played_at")[:5])
+        low_scores = list(scores_qs.order_by("score", "-game__played_at")[:5])
+
+    return render(
+        request,
+        "scores/player_stats.html",
+        {
+            "players": players,
+            "selected_player": selected_player,
+            "stats": stats,
+            "last_score": last_score,
+            "recent_scores": recent_scores,
+            "top_scores": top_scores,
+            "low_scores": low_scores,
+        },
+    )

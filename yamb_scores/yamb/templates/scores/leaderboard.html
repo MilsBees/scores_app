@@ -1,19 +1,45 @@
 {% extends "scores/base.html" %}
 {% block content %}
   <h2>Player Leaderboard</h2>
+
+  <style>
+    table th a,
+    table th a:visited {
+      color: inherit;
+      text-decoration: none;
+    }
+    table td a,
+    table td a:visited {
+      color: inherit;
+      text-decoration: none;
+    }
+    table td a:hover { text-decoration: underline; }
+    table th a:hover { text-decoration: underline; }
+    table th a.sorted { text-decoration: underline; font-weight: 600; }
+    .sort-indicator { margin-left: 0.25rem; font-size: 0.9em; opacity: 0.75; }
+  </style>
   <table>
     <thead>
       <tr>
         <th>Rank</th>
         <th>Player</th>
         <th>
-          <a href="?sort=best" style="text-decoration: {% if sort_by == 'best' %}underline{% endif %}">Best</a>
+          <a href="?{{ sort_links.best }}" class="{% if sort_by == 'best' %}sorted{% endif %}">
+            Best
+            {% if sort_by == 'best' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
         </th>
         <th>
-          <a href="?sort=avg" style="text-decoration: {% if sort_by == 'avg' %}underline{% endif %}">Average</a>
+          <a href="?{{ sort_links.avg }}" class="{% if sort_by == 'avg' %}sorted{% endif %}">
+            Average
+            {% if sort_by == 'avg' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
         </th>
         <th>
-          <a href="?sort=games" style="text-decoration: {% if sort_by == 'games' %}underline{% endif %}">Games</a>
+          <a href="?{{ sort_links.games }}" class="{% if sort_by == 'games' %}sorted{% endif %}">
+            Games
+            {% if sort_by == 'games' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
         </th>
       </tr>
     </thead>
@@ -21,7 +47,7 @@
       {% for p in players %}
       <tr>
         <td>{{ forloop.counter }}</td>
-        <td>{{ p.name }}</td>
+        <td><a href="{% url 'scores:player_stats' %}?player={{ p.id }}">{{ p.name }}</a></td>
         <td>{{ p.best_score|default:"—" }}</td>
         <td>
           {% if p.avg_score %}{{ p.avg_score|floatformat:1 }}{% else %}—{% endif %}

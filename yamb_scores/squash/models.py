@@ -1,12 +1,41 @@
 from django.db import models
+from django.db.models import UniqueConstraint
+from django.db.models.functions import Lower
+
+
+class SquashSession(models.Model):
+    date_played = models.DateField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date_played"]
+        verbose_name = "Squash session"
+        verbose_name_plural = "Squash sessions"
+
+    def __str__(self):
+        return f"Squash Session - {self.date_played}"
+
 
 class SquashPlayer(models.Model):
     name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(Lower("name"), name="squashplayer_name_ci_unique"),
+        ]
 
     def __str__(self):
         return self.name
 
 class SquashMatch(models.Model):
+    session = models.ForeignKey(
+        SquashSession,
+        related_name="matches",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     player_1 = models.ForeignKey(SquashPlayer, related_name='squash_matches_as_p1', on_delete=models.CASCADE)
     player_2 = models.ForeignKey(SquashPlayer, related_name='squash_matches_as_p2', on_delete=models.CASCADE)
     date_played = models.DateField()
@@ -18,6 +47,8 @@ class SquashMatch(models.Model):
 
     class Meta:
         ordering = ['-date_played']
+        verbose_name = 'Squash match'
+        verbose_name_plural = 'Squash matches'
 
 class SquashSet(models.Model):
     match = models.ForeignKey(SquashMatch, related_name='sets', on_delete=models.CASCADE)

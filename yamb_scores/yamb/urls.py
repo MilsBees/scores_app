@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.game_list, name='game_list'),
     path('new/', views.new_game, name='new_game'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
+    path('player-stats/', views.player_stats, name='player_stats'),
     
     # Yamb scoresheet routes
     path('yamb/', views.yamb_list, name='yamb_list'),

@@ -1,21 +1,26 @@
 {% extends "squash/base.html" %}
 {% block content %}
-  <h2>New Match</h2>
-  <form method="post" id="match-form">
+  <h2>New session</h2>
+
+  <div class="card">
+    <p>Enter sets as you play them. Each row is one set between two players. The app will group sets into matches for the selected day.</p>
+  </div>
+
+  <form method="post" id="session-form">
     {% csrf_token %}
 
-    {% if form.errors or formset.non_form_errors %}
+    {% if session_form.errors or set_formset.non_form_errors %}
       <div class="error-message">
         <strong>Please fix the following errors:</strong>
-        {% for field in form %}
+        {% for field in session_form %}
           {% for error in field.errors %}
             <div>{{ field.label }}: {{ error }}</div>
           {% endfor %}
         {% endfor %}
-        {% for error in formset.non_form_errors %}
+        {% for error in set_formset.non_form_errors %}
           <div>{{ error }}</div>
         {% endfor %}
-        {% for set_form in formset.forms %}
+        {% for set_form in set_formset.forms %}
           {% for field in set_form %}
             {% for error in field.errors %}
               <div>Set {{ forloop.parentloop.counter }} — {{ field.label }}: {{ error }}</div>
@@ -24,43 +29,39 @@
         {% endfor %}
       </div>
     {% endif %}
+
     <div class="card">
-      <h3>Players</h3>
+      <h3>Session</h3>
       <div style="margin-bottom: 1rem;">
-        {{ form.player_1_name.label }}: {{ form.player_1_name }}
-      </div>
-      <div style="margin-bottom: 1rem;">
-        {{ form.player_2_name.label }}: {{ form.player_2_name }}
-      </div>
-      <div style="margin-bottom: 1rem;">
-        {{ form.date_played.label }}: {{ form.date_played }}
+        {{ session_form.date_played.label }}: {{ session_form.date_played }}
       </div>
     </div>
-    
+
     <h3>Sets</h3>
     <div class="card">
-      {{ formset.management_form }}
+      {{ set_formset.management_form }}
       <table id="sets-table">
         <thead>
           <tr>
-            <th>Set</th>
-            <th>Player 1 Points</th>
-            <th>Player 2 Points</th>
+            <th>Player A</th>
+            <th>Player B</th>
+            <th>A points</th>
+            <th>B points</th>
             <th>Remove</th>
           </tr>
         </thead>
         <tbody id="formset-tbody">
-          {% for set_form in formset.forms %}
+          {% for set_form in set_formset.forms %}
           <tr class="formset-row">
-            <td><strong>{{ forloop.counter }}</strong></td>
-            <td>{{ set_form.player_1_points }}</td>
-            <td>{{ set_form.player_2_points }}</td>
+            <td>{{ set_form.player_a_name }}</td>
+            <td>{{ set_form.player_b_name }}</td>
+            <td>{{ set_form.player_a_points }}</td>
+            <td>{{ set_form.player_b_points }}</td>
             <td>
               {% if forloop.first %}
-                <input type="hidden" name="sets-{{ forloop.counter0 }}-DELETE">
                 —
               {% else %}
-                <input type="hidden" name="sets-{{ forloop.counter0 }}-DELETE">
+                {{ set_form.DELETE }}
                 <button type="button" class="delete-row">Delete</button>
               {% endif %}
             </td>
@@ -70,8 +71,8 @@
       </table>
       <button type="button" id="add-row" style="margin-top: 1rem;">+ Add set</button>
     </div>
-    
-    <button type="submit" style="padding: 0.5rem 1rem; background: #4ecdc4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">Save match</button>
+
+    <button type="submit">Save session</button>
   </form>
 
   <script>
@@ -79,46 +80,43 @@
     const totalFormsInput = document.getElementById('id_sets-TOTAL_FORMS');
     const addRowBtn = document.getElementById('add-row');
 
-    // Add new row
     addRowBtn.addEventListener('click', (e) => {
       e.preventDefault();
       const formCount = parseInt(totalFormsInput.value);
       const newRow = document.createElement('tr');
       newRow.className = 'formset-row';
-      
+
       const emptyForm = `
-        <td><strong>${formCount + 1}</strong></td>
-        <td><input type="number" name="sets-${formCount}-player_1_points" min="0" step="1"></td>
-        <td><input type="number" name="sets-${formCount}-player_2_points" min="0" step="1"></td>
+        <td><input type="text" name="sets-${formCount}-player_a_name" maxlength="100"></td>
+        <td><input type="text" name="sets-${formCount}-player_b_name" maxlength="100"></td>
+        <td><input type="number" name="sets-${formCount}-player_a_points" min="0" step="1"></td>
+        <td><input type="number" name="sets-${formCount}-player_b_points" min="0" step="1"></td>
         <td>
-          <input type="hidden" name="sets-${formCount}-DELETE">
+          <input type="checkbox" name="sets-${formCount}-DELETE" style="display:none;">
           <button type="button" class="delete-row">Delete</button>
         </td>
       `;
+
       newRow.innerHTML = emptyForm;
       formsetBody.appendChild(newRow);
-      
       totalFormsInput.value = formCount + 1;
-      
-      // Attach delete handler to new row
+
       newRow.querySelector('.delete-row').addEventListener('click', deleteRow);
     });
 
-    // Delete row
     function deleteRow(e) {
       e.preventDefault();
       const row = e.target.closest('tr');
       const deleteInput = row.querySelector('input[name$="-DELETE"]');
-      
+
       if (deleteInput) {
-        deleteInput.value = 'on';
+        deleteInput.checked = true;
         row.style.display = 'none';
       } else {
         row.remove();
       }
     }
 
-    // Attach delete handlers to existing rows
     document.querySelectorAll('.delete-row').forEach(btn => {
       btn.addEventListener('click', deleteRow);
     });
@@ -126,7 +124,8 @@
 
   <style>
     table { margin: 1rem 0; }
-    input[type="number"] { width: 100px; }
+    input[type="text"] { width: 160px; }
+    input[type="number"] { width: 110px; }
     #add-row {
       padding: 0.5rem 1rem;
       background: #4ecdc4;
@@ -135,9 +134,7 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    #add-row:hover {
-      background: #3ab3aa;
-    }
+    #add-row:hover { background: #3ab3aa; }
     .delete-row {
       padding: 0.25rem 0.75rem;
       background: #dc3545;
@@ -147,8 +144,6 @@
       cursor: pointer;
       font-size: 0.875rem;
     }
-    .delete-row:hover {
-      background: #c82333;
-    }
+    .delete-row:hover { background: #c82333; }
   </style>
 {% endblock %}

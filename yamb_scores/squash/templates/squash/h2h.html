@@ -20,12 +20,54 @@
         <thead>
           <tr>
             <th>Opponent</th>
-            <th>Points For</th>
-            <th>Points Against</th>
-            <th>Point Diff</th>
-            <th>Sets Won</th>
-            <th>Sets Lost</th>
-            <th>Match Record (W-L-D)</th>
+            <th>
+              <a href="?{{ sort_links.points_for }}" class="{% if sort == 'points_for' %}sorted{% endif %}">
+                Points For
+                {% if sort == 'points_for' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="?{{ sort_links.points_against }}" class="{% if sort == 'points_against' %}sorted{% endif %}">
+                Points Against
+                {% if sort == 'points_against' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="?{{ sort_links.point_diff }}" class="{% if sort == 'point_diff' %}sorted{% endif %}">
+                Point Diff
+                {% if sort == 'point_diff' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="?{{ sort_links.sets_won }}" class="{% if sort == 'sets_won' %}sorted{% endif %}">
+                Sets Won
+                {% if sort == 'sets_won' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="?{{ sort_links.sets_lost }}" class="{% if sort == 'sets_lost' %}sorted{% endif %}">
+                Sets Lost
+                {% if sort == 'sets_lost' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="?{{ sort_links.matches_won }}" class="{% if sort == 'matches_won' %}sorted{% endif %}">
+                Wins
+                {% if sort == 'matches_won' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="?{{ sort_links.matches_drawn }}" class="{% if sort == 'matches_drawn' %}sorted{% endif %}">
+                Draws
+                {% if sort == 'matches_drawn' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="?{{ sort_links.matches_lost }}" class="{% if sort == 'matches_lost' %}sorted{% endif %}">
+                Losses
+                {% if sort == 'matches_lost' %}<span class="sort-indicator">{% if dir == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+              </a>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -37,7 +79,9 @@
             <td>{{ record.point_diff }}</td>
             <td>{{ record.sets_won }}</td>
             <td>{{ record.sets_lost }}</td>
-            <td>{{ record.matches_won }}-{{ record.matches_lost }}-{{ record.matches_drawn }}</td>
+            <td>{{ record.matches_won }}</td>
+            <td>{{ record.matches_drawn }}</td>
+            <td>{{ record.matches_lost }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -51,5 +95,14 @@
 
   <style>
     select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+
+    table th a,
+    table th a:visited {
+      color: inherit;
+      text-decoration: none;
+    }
+    table th a:hover { text-decoration: underline; }
+    table th a.sorted { text-decoration: underline; font-weight: 600; }
+    .sort-indicator { margin-left: 0.25rem; font-size: 0.9em; opacity: 0.75; }
   </style>
 {% endblock %}

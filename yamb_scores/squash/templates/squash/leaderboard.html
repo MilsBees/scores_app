@@ -1,31 +1,158 @@
 {% extends "squash/base.html" %}
 {% block content %}
   <h2>Leaderboard</h2>
+
+  <style>
+    /* Make sortable headers look like headers, not blue links */
+    table th a,
+    table th a:visited {
+      color: inherit;
+      text-decoration: none;
+    }
+    table th a:hover {
+      text-decoration: underline;
+    }
+
+    /* Indicate active sort column */
+    table th a.sorted {
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .sort-indicator {
+      margin-left: 0.25rem;
+      font-size: 0.9em;
+      opacity: 0.75;
+    }
+  </style>
+
+  <h3>Relative leaderboard</h3>
   <table>
     <thead>
       <tr>
         <th>Rank</th>
         <th>Player</th>
-        <th>Total Points</th>
-        <th>Sets Won</th>
-        <th>Total Sets</th>
-        <th>Match Record (W-L-D)</th>
-        <th>Last Match</th>
+        <th>
+          <a href="?{{ rel_sort_links.match_win_pct }}" class="{% if rel_sort == 'match_win_pct' %}sorted{% endif %}">
+            Match Win %
+            {% if rel_sort == 'match_win_pct' %}
+              <span class="sort-indicator">{% if rel_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ rel_sort_links.set_win_pct }}" class="{% if rel_sort == 'set_win_pct' %}sorted{% endif %}">
+            Set Win %
+            {% if rel_sort == 'set_win_pct' %}
+              <span class="sort-indicator">{% if rel_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ rel_sort_links.point_win_pct }}" class="{% if rel_sort == 'point_win_pct' %}sorted{% endif %}">
+            Point Win %
+            {% if rel_sort == 'point_win_pct' %}
+              <span class="sort-indicator">{% if rel_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>Match Record (W-D-L)</th>
       </tr>
     </thead>
     <tbody>
-      {% for stat in player_stats %}
+      {% for stat in relative_stats %}
       <tr>
         <td>{{ forloop.counter }}</td>
         <td>{{ stat.player.name }}</td>
-        <td>{{ stat.total_points }}</td>
-        <td>{{ stat.total_sets_won }}</td>
-        <td>{{ stat.total_sets }}</td>
-        <td>{{ stat.matches_won }}-{{ stat.matches_lost }}-{{ stat.matches_drawn }}</td>
+        <td>{{ stat.match_win_pct|floatformat:1 }}% ({{ stat.matches_won }}/{{ stat.matches_played }})</td>
+        <td>{{ stat.set_win_pct|floatformat:1 }}% ({{ stat.total_sets_won }}/{{ stat.total_sets }})</td>
+        <td>{{ stat.point_win_pct|floatformat:1 }}% ({{ stat.points_for }}/{{ stat.points_total }})</td>
+        <td>{{ stat.matches_won }}-{{ stat.matches_drawn }}-{{ stat.matches_lost }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No matches recorded yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3 style="margin-top: 2rem;">All-time leaderboard</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Player</th>
+        <th>
+          <a href="?{{ abs_sort_links.matches_won }}" class="{% if abs_sort == 'matches_won' %}sorted{% endif %}">
+            Wins
+            {% if abs_sort == 'matches_won' %}
+              <span class="sort-indicator">{% if abs_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ abs_sort_links.matches_drawn }}" class="{% if abs_sort == 'matches_drawn' %}sorted{% endif %}">
+            Draws
+            {% if abs_sort == 'matches_drawn' %}
+              <span class="sort-indicator">{% if abs_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ abs_sort_links.matches_lost }}" class="{% if abs_sort == 'matches_lost' %}sorted{% endif %}">
+            Losses
+            {% if abs_sort == 'matches_lost' %}
+              <span class="sort-indicator">{% if abs_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ abs_sort_links.points_for }}" class="{% if abs_sort == 'points_for' %}sorted{% endif %}">
+            Points Won
+            {% if abs_sort == 'points_for' %}
+              <span class="sort-indicator">{% if abs_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ abs_sort_links.points_against }}" class="{% if abs_sort == 'points_against' %}sorted{% endif %}">
+            Points Lost
+            {% if abs_sort == 'points_against' %}
+              <span class="sort-indicator">{% if abs_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ abs_sort_links.point_diff }}" class="{% if abs_sort == 'point_diff' %}sorted{% endif %}">
+            Point Differential
+            {% if abs_sort == 'point_diff' %}
+              <span class="sort-indicator">{% if abs_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?{{ abs_sort_links.last_match_date }}" class="{% if abs_sort == 'last_match_date' %}sorted{% endif %}">
+            Last Match
+            {% if abs_sort == 'last_match_date' %}
+              <span class="sort-indicator">{% if abs_dir == 'desc' %}▼{% else %}▲{% endif %}</span>
+            {% endif %}
+          </a>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in absolute_stats %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ stat.player.name }}</td>
+        <td>{{ stat.matches_won }}</td>
+        <td>{{ stat.matches_drawn }}</td>
+        <td>{{ stat.matches_lost }}</td>
+        <td>{{ stat.points_for }}</td>
+        <td>{{ stat.points_against }}</td>
+        <td>{{ stat.point_diff }}</td>
         <td>{{ stat.last_match_date }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="7">No matches recorded yet.</td></tr>
+      <tr><td colspan="9">No matches recorded yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>
