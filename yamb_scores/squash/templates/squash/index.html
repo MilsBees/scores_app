@@ -32,15 +32,20 @@
   <h1>Squash</h1>
   <nav>
     <a href="{% url 'squash:new_match' %}">New match</a>
+    <a href="{% url 'squash:new_session' %}">New session</a>
     <a href="{% url 'squash:match_list' %}">Matches</a>
+    <a href="{% url 'squash:player_list' %}">Players</a>
     <a href="{% url 'squash:leaderboard' %}">Leaderboard</a>
     <a href="{% url 'squash:h2h' %}">H2H</a>
-    <a href="/admin/">Admin</a>
+    <a href="{% url 'squash:analysis' %}">Analysis</a>
   </nav>
   <main>
     <div class="card">
       <p>Welcome to Squash Scores! Use the tabs above to get started.</p>
     </div>
+    <footer style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; font-size: 0.9rem; color: #666;">
+      <a href="/admin/" style="color: #4ecdc4; text-decoration: none;">Admin</a>
+    </footer>
   </main>
 </body>
 </html>

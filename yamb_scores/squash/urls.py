@@ -10,4 +10,9 @@ urlpatterns = [
     path('matches/', views.match_list, name='match_list'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('h2h/', views.h2h, name='h2h'),
+    path('analysis/', views.analysis, name='analysis'),
+    path('players/', views.player_list, name='player_list'),
+    path('players/new/', views.new_player, name='new_player'),
+    path('players/<int:pk>/edit/', views.edit_player, name='edit_player'),
+    path('players/<int:pk>/delete/', views.delete_player, name='delete_player'),
 ]

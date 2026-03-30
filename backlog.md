@@ -22,9 +22,9 @@ Here is the updated list of features and ideas.
 
 ### To-Do 📋
 
-
-
 ### Done ✅
+-   [x] Add an in-depth Analysis tab with performance graphs over time.
+-   [x] Add a Players tab to manage players and use dropdowns on match/session pages.
 -   [x] Add a Squash admin page (Django admin) for managing matches/players.
 -   [x] Add sortable columns to the leaderboard page.
 -   [x] Add sortable columns to the Head-to-Head (H2H) page.

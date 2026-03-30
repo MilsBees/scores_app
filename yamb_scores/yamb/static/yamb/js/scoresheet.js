@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_l" class="score-input" inputmode="text"></td>
                 <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_s" class="score-input" inputmode="text"></td>
                 <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_total" class="score-input" inputmode="text" readonly></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_total" class="score-input" inputmode="text"></td>
               </tr>
               <tr><td><strong>FH</strong></td>
                 <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_down" class="score-input" inputmode="text"></td>

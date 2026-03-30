@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.db.models import Sum, Count, Q, Case, When, IntegerField, F, Max
 from django.urls import reverse
+from django.http import JsonResponse
+from datetime import datetime, timedelta
 from .models import SquashMatch, SquashSet, SquashPlayer, SquashSession
 from .forms import (
     SquashMatchForm,
@@ -78,13 +80,10 @@ def new_session(request):
                     if not entry_form.cleaned_data or entry_form.cleaned_data.get("DELETE"):
                         continue
 
-                    a_name = entry_form.cleaned_data["player_a_name"]
-                    b_name = entry_form.cleaned_data["player_b_name"]
+                    player_a = entry_form.cleaned_data["player_a"]
+                    player_b = entry_form.cleaned_data["player_b"]
                     a_points = entry_form.cleaned_data["player_a_points"]
                     b_points = entry_form.cleaned_data["player_b_points"]
-
-                    player_a = get_or_create_player_case_insensitive(a_name)
-                    player_b = get_or_create_player_case_insensitive(b_name)
 
                     # Canonical ordering so a pair maps to exactly one match per session
                     if player_a.id < player_b.id:
@@ -462,3 +461,178 @@ def h2h(request):
         'dir': direction,
         'sort_links': sort_links,
     })
+
+
+def player_list(request):
+    """List all players"""
+    players = SquashPlayer.objects.all().order_by('name')
+    return render(request, 'squash/player_list.html', {'players': players})
+
+
+def new_player(request):
+    """Create a new player"""
+    if request.method == 'POST':
+        from .forms import SquashPlayerForm
+        form = SquashPlayerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('squash:player_list'))
+    else:
+        from .forms import SquashPlayerForm
+        form = SquashPlayerForm()
+    
+    return render(request, 'squash/new_player.html', {'form': form})
+
+
+def edit_player(request, pk):
+    """Edit a player"""
+    player = get_object_or_404(SquashPlayer, pk=pk)
+    
+    if request.method == 'POST':
+        from .forms import SquashPlayerForm
+        form = SquashPlayerForm(request.POST, instance=player)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('squash:player_list'))
+    else:
+        from .forms import SquashPlayerForm
+        form = SquashPlayerForm(instance=player)
+    
+    return render(request, 'squash/edit_player.html', {'form': form, 'player': player})
+
+
+def delete_player(request, pk):
+    """Delete a player"""
+    player = get_object_or_404(SquashPlayer, pk=pk)
+    
+    if request.method == 'POST':
+        player.delete()
+        return redirect(reverse('squash:player_list'))
+    
+    return render(request, 'squash/delete_player.html', {'player': player})
+
+
+def analysis(request):
+    """Analysis page showing trends in player performance over time (by session or match)"""
+    date_range = request.GET.get('range', '30')
+    
+    # Determine date range
+    today = datetime.now().date()
+    if date_range == '60':
+        start_date = today - timedelta(days=60)
+    elif date_range == 'ytd':
+        start_date = datetime(today.year, 1, 1).date()
+    else:  # default to 30
+        start_date = today - timedelta(days=30)
+        date_range = '30'
+    
+    # Get all players
+    players = SquashPlayer.objects.all().order_by('name')
+    
+    # Get all matches in date range (from sessions AND standalone matches)
+    matches = SquashMatch.objects.filter(
+        date_played__gte=start_date,
+        date_played__lte=today
+    ).prefetch_related('sets').order_by('date_played')
+    
+    if not matches.exists():
+        context = {
+            'trend_data': {},
+            'all_sessions': [],
+            'date_range': date_range,
+            'start_date': start_date,
+            'players': [],
+        }
+        return render(request, 'squash/analysis.html', context)
+    
+    # Group matches by date
+    matches_by_date = {}
+    for match in matches:
+        date_key = match.date_played.isoformat()
+        if date_key not in matches_by_date:
+            matches_by_date[date_key] = []
+        matches_by_date[date_key].append(match)
+    
+    # Calculate trend data for each player by date
+    trend_data = {}
+    
+    for player in players:
+        player_dates = []
+        has_data = False
+        
+        for date_key in sorted(matches_by_date.keys()):
+            matches_on_date = matches_by_date[date_key]
+            
+            # Get all matches for this player on this date
+            player_matches = [m for m in matches_on_date if m.player_1 == player or m.player_2 == player]
+            
+            if not player_matches:
+                continue
+            
+            # Calculate stats for this date
+            matches_won = 0
+            matches_total = 0
+            sets_won = 0
+            sets_total = 0
+            points_for = 0
+            points_against = 0
+            
+            for match in player_matches:
+                sets = match.sets.all()
+                if not sets.exists():
+                    continue
+                
+                # Calculate player's performance in this match
+                if player == match.player_1:
+                    match_sets_won = sum(1 for s in sets if s.player_1_points > s.player_2_points)
+                    match_sets_total = sets.count()
+                    match_points_for = sum(s.player_1_points for s in sets)
+                    match_points_against = sum(s.player_2_points for s in sets)
+                else:
+                    match_sets_won = sum(1 for s in sets if s.player_2_points > s.player_1_points)
+                    match_sets_total = sets.count()
+                    match_points_for = sum(s.player_2_points for s in sets)
+                    match_points_against = sum(s.player_1_points for s in sets)
+                
+                # Determine match result (more sets won = match win)
+                if match_sets_won > match_sets_total - match_sets_won:
+                    matches_won += 1
+                matches_total += 1
+                sets_won += match_sets_won
+                sets_total += match_sets_total
+                points_for += match_points_for
+                points_against += match_points_against
+            
+            if matches_total > 0:
+                has_data = True
+                match_win_pct = (matches_won / matches_total * 100)
+                set_win_pct = (sets_won / sets_total * 100) if sets_total > 0 else 0
+                point_win_pct = (points_for / (points_for + points_against) * 100) if (points_for + points_against) > 0 else 0
+                
+                player_dates.append({
+                    'date': date_key,
+                    'match_win_pct': round(match_win_pct, 1),
+                    'set_win_pct': round(set_win_pct, 1),
+                    'point_win_pct': round(point_win_pct, 1),
+                })
+        
+        if has_data:
+            trend_data[player.name] = player_dates
+    
+    # Get all dates (for x-axis)
+    all_dates = []
+    for player_data in trend_data.values():
+        for date_data in player_data:
+            if date_data['date'] not in all_dates:
+                all_dates.append(date_data['date'])
+    all_dates.sort()
+    
+    context = {
+        'trend_data': trend_data,
+        'all_sessions': all_dates,
+        'date_range': date_range,
+        'start_date': start_date,
+        'players': list(trend_data.keys()),
+    }
+    
+    return render(request, 'squash/analysis.html', context)

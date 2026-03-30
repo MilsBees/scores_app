@@ -27,13 +27,28 @@
     <div class="card">
       <h3>Players</h3>
       <div style="margin-bottom: 1rem;">
-        {{ form.player_1_name.label }}: {{ form.player_1_name }}
+        {{ form.player_1.label_tag }}: {{ form.player_1 }}
+        {% if form.player_1.errors %}
+          <div style="color: #c33; margin-top: 0.25rem; font-size: 0.9rem;">
+            {% for error in form.player_1.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
       </div>
       <div style="margin-bottom: 1rem;">
-        {{ form.player_2_name.label }}: {{ form.player_2_name }}
+        {{ form.player_2.label_tag }}: {{ form.player_2 }}
+        {% if form.player_2.errors %}
+          <div style="color: #c33; margin-top: 0.25rem; font-size: 0.9rem;">
+            {% for error in form.player_2.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
       </div>
       <div style="margin-bottom: 1rem;">
         {{ form.date_played.label }}: {{ form.date_played }}
+        {% if form.date_played.errors %}
+          <div style="color: #c33; margin-top: 0.25rem; font-size: 0.9rem;">
+            {% for error in form.date_played.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
       </div>
     </div>
     

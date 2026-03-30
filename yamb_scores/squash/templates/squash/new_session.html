@@ -53,8 +53,8 @@
         <tbody id="formset-tbody">
           {% for set_form in set_formset.forms %}
           <tr class="formset-row">
-            <td>{{ set_form.player_a_name }}</td>
-            <td>{{ set_form.player_b_name }}</td>
+            <td>{{ set_form.player_a }}</td>
+            <td>{{ set_form.player_b }}</td>
             <td>{{ set_form.player_a_points }}</td>
             <td>{{ set_form.player_b_points }}</td>
             <td>
@@ -72,7 +72,7 @@
       <button type="button" id="add-row" style="margin-top: 1rem;">+ Add set</button>
     </div>
 
-    <button type="submit">Save session</button>
+    <button type="submit" style="padding: 0.5rem 1rem; background: #4ecdc4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">Save session</button>
   </form>
 
   <script>
@@ -80,17 +80,27 @@
     const totalFormsInput = document.getElementById('id_sets-TOTAL_FORMS');
     const addRowBtn = document.getElementById('add-row');
 
+    // Get all available players from the first row's select elements
+    function getPlayerOptions() {
+      const firstPlayerSelect = document.querySelector('select[name*="-player_a"]');
+      if (!firstPlayerSelect) {
+        return '<option value="">-- Select a player --</option>';
+      }
+      return firstPlayerSelect.innerHTML;
+    }
+
     addRowBtn.addEventListener('click', (e) => {
       e.preventDefault();
       const formCount = parseInt(totalFormsInput.value);
       const newRow = document.createElement('tr');
       newRow.className = 'formset-row';
+      const playerOptions = getPlayerOptions();
 
       const emptyForm = `
-        <td><input type="text" name="sets-${formCount}-player_a_name" maxlength="100"></td>
-        <td><input type="text" name="sets-${formCount}-player_b_name" maxlength="100"></td>
-        <td><input type="number" name="sets-${formCount}-player_a_points" min="0" step="1"></td>
-        <td><input type="number" name="sets-${formCount}-player_b_points" min="0" step="1"></td>
+        <td><select name="sets-${formCount}-player_a" required>${playerOptions}</select></td>
+        <td><select name="sets-${formCount}-player_b" required>${playerOptions}</select></td>
+        <td><input type="number" name="sets-${formCount}-player_a_points" min="0" step="1" required></td>
+        <td><input type="number" name="sets-${formCount}-player_b_points" min="0" step="1" required></td>
         <td>
           <input type="checkbox" name="sets-${formCount}-DELETE" style="display:none;">
           <button type="button" class="delete-row">Delete</button>
@@ -124,8 +134,8 @@
 
   <style>
     table { margin: 1rem 0; }
-    input[type="text"] { width: 160px; }
-    input[type="number"] { width: 110px; }
+    select { width: 160px; padding: 0.35rem; }
+    input[type="number"] { width: 110px; padding: 0.35rem; }
     #add-row {
       padding: 0.5rem 1rem;
       background: #4ecdc4;

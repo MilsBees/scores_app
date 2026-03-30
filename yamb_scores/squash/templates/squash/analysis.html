@@ -1,0 +1,147 @@
+{% extends "squash/base.html" %}
+{% block content %}
+  <h2>Performance Analysis</h2>
+  
+  <div class="card">
+    <h3>Date Range</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="?range=30" style="padding: 0.5rem 1rem; background: {% if date_range == '30' %}#3ab3aa{% else %}#4ecdc4{% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Last 30 Days</a>
+      <a href="?range=60" style="padding: 0.5rem 1rem; background: {% if date_range == '60' %}#3ab3aa{% else %}#4ecdc4{% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Last 60 Days</a>
+      <a href="?range=ytd" style="padding: 0.5rem 1rem; background: {% if date_range == 'ytd' %}#3ab3aa{% else %}#4ecdc4{% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Year to Date</a>
+    </div>
+  </div>
+
+  {% if players %}
+    <div class="card">
+      <h3>Match Win %</h3>
+      <canvas id="matchWinChart" style="max-height: 400px;"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Set Win %</h3>
+      <canvas id="setWinChart" style="max-height: 400px;"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Point Win %</h3>
+      <canvas id="pointWinChart" style="max-height: 400px;"></canvas>
+    </div>
+  {% else %}
+    <div class="card">
+      <p>No data available for the selected date range.</p>
+    </div>
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <script>
+    // Color palette for players (consistent across all charts)
+    const colors = [
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA502', '#2ECC71',
+      '#3498DB', '#E74C3C', '#9B59B6', '#1ABC9C', '#D35400',
+      '#34495E', '#16A085', '#C0392B', '#8E44AD', '#2980B9'
+    ];
+
+    const playerColors = {};
+    const players = {{ players|safe }};
+    players.forEach((player, index) => {
+      playerColors[player] = colors[index % colors.length];
+    });
+
+    const allSessions = {{ all_sessions|safe }};
+    const trendData = {{ trend_data|safe }};
+
+    // Helper function to create a dataset for a player
+    function createDataset(playerName, metric) {
+      const playerData = trendData[playerName] || [];
+      const dataPoints = playerData.map(d => ({
+        x: d.date,
+        y: d[metric]
+      }));
+      return {
+        label: playerName,
+        data: dataPoints,
+        borderColor: playerColors[playerName],
+        backgroundColor: playerColors[playerName] + '20',
+        tension: 0.3,
+        fill: false,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 2,
+      };
+    }
+
+    // No need for formatted labels - time scale will handle it
+
+    // Common chart config
+    const commonConfig = {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+        },
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            displayFormats: {
+              day: 'MMM dd'
+            }
+          },
+          ticks: {
+            maxTicksLimit: 10
+          }
+        },
+        y: {
+          min: 0,
+          max: 100,
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        }
+      }
+    };
+
+    // Match Win % Chart
+    const matchCtx = document.getElementById('matchWinChart').getContext('2d');
+    new Chart(matchCtx, {
+      type: 'line',
+      data: {
+        datasets: players.map(p => createDataset(p, 'match_win_pct'))
+      },
+      options: {
+        ...commonConfig,
+        plugins: {
+          ...commonConfig.plugins,
+          title: { display: false }
+        }
+      }
+    });
+
+    // Set Win % Chart
+    const setCtx = document.getElementById('setWinChart').getContext('2d');
+    new Chart(setCtx, {
+      type: 'line',
+      data: {
+        datasets: players.map(p => createDataset(p, 'set_win_pct'))
+      },
+      options: commonConfig
+    });
+
+    // Point Win % Chart
+    const pointCtx = document.getElementById('pointWinChart').getContext('2d');
+    new Chart(pointCtx, {
+      type: 'line',
+      data: {
+        datasets: players.map(p => createDataset(p, 'point_win_pct'))
+      },
+      options: commonConfig
+    });
+  </script>
+{% endblock %}

@@ -15,58 +15,62 @@ def get_or_create_player_case_insensitive(name: str) -> SquashPlayer:
         return existing
     return SquashPlayer.objects.create(name=cleaned)
 
+
+class SquashPlayerForm(forms.ModelForm):
+    """Form for creating and editing players"""
+    class Meta:
+        model = SquashPlayer
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Player name'})
+        }
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if not name:
+            raise forms.ValidationError("Player name is required.")
+        
+        # Check for case-insensitive duplicates (excluding the current instance if editing)
+        existing = SquashPlayer.objects.filter(name__iexact=name)
+        if self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        
+        if existing.exists():
+            raise forms.ValidationError(f"A player with the name '{name}' already exists.")
+        
+        return name.title()
+
+
 class SquashMatchForm(forms.ModelForm):
-    player_1_name = forms.CharField(
-        max_length=100,
+    player_1 = forms.ModelChoiceField(
+        queryset=SquashPlayer.objects.all().order_by('name'),
         required=True,
         label="Player 1",
-        error_messages={"required": "Player 1 name is required."},
+        error_messages={"required": "Player 1 is required."},
     )
-    player_2_name = forms.CharField(
-        max_length=100,
+    player_2 = forms.ModelChoiceField(
+        queryset=SquashPlayer.objects.all().order_by('name'),
         required=True,
         label="Player 2",
-        error_messages={"required": "Player 2 name is required."},
+        error_messages={"required": "Player 2 is required."},
     )
 
     class Meta:
         model = SquashMatch
-        fields = ['date_played']
+        fields = ['player_1', 'player_2', 'date_played']
         widgets = {
             'date_played': forms.DateInput(attrs={'type': 'date'})
         }
 
     def clean(self):
         cleaned_data = super().clean()
-        p1 = (cleaned_data.get('player_1_name') or '').strip()
-        p2 = (cleaned_data.get('player_2_name') or '').strip()
+        player_1 = cleaned_data.get('player_1')
+        player_2 = cleaned_data.get('player_2')
 
-        if not p1:
-            self.add_error('player_1_name', 'Player 1 name is required.')
-        if not p2:
-            self.add_error('player_2_name', 'Player 2 name is required.')
-        
-        if p1 and p2 and p1.lower() == p2.lower():
+        if player_1 and player_2 and player_1 == player_2:
             raise forms.ValidationError("Players must be different!")
 
-        cleaned_data['player_1_name'] = p1
-        cleaned_data['player_2_name'] = p2
         return cleaned_data
-
-    def save(self, commit=True):
-        p1_name = self.cleaned_data.get('player_1_name').strip()
-        p2_name = self.cleaned_data.get('player_2_name').strip()
-
-        player_1 = get_or_create_player_case_insensitive(p1_name)
-        player_2 = get_or_create_player_case_insensitive(p2_name)
-        
-        match = super().save(commit=False)
-        match.player_1 = player_1
-        match.player_2 = player_2
-        
-        if commit:
-            match.save()
-        return match
 
 
 class SquashSetForm(forms.ModelForm):
@@ -115,17 +119,17 @@ class SquashSessionForm(forms.ModelForm):
 
 
 class SquashSessionSetEntryForm(forms.Form):
-    player_a_name = forms.CharField(
-        max_length=100,
+    player_a = forms.ModelChoiceField(
+        queryset=SquashPlayer.objects.all().order_by('name'),
         required=True,
         label="Player A",
-        error_messages={"required": "Player A name is required."},
+        error_messages={"required": "Player A is required."},
     )
-    player_b_name = forms.CharField(
-        max_length=100,
+    player_b = forms.ModelChoiceField(
+        queryset=SquashPlayer.objects.all().order_by('name'),
         required=True,
         label="Player B",
-        error_messages={"required": "Player B name is required."},
+        error_messages={"required": "Player B is required."},
     )
     player_a_points = forms.IntegerField(
         min_value=0,
@@ -142,19 +146,12 @@ class SquashSessionSetEntryForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        player_a_name = (cleaned_data.get("player_a_name") or "").strip()
-        player_b_name = (cleaned_data.get("player_b_name") or "").strip()
+        player_a = cleaned_data.get("player_a")
+        player_b = cleaned_data.get("player_b")
 
-        if not player_a_name:
-            self.add_error("player_a_name", "Player A name is required.")
-        if not player_b_name:
-            self.add_error("player_b_name", "Player B name is required.")
-
-        if player_a_name and player_b_name and player_a_name.lower() == player_b_name.lower():
+        if player_a and player_b and player_a == player_b:
             raise forms.ValidationError("Players must be different!")
 
-        cleaned_data["player_a_name"] = player_a_name
-        cleaned_data["player_b_name"] = player_b_name
         return cleaned_data
 
 
