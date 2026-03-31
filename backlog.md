@@ -6,8 +6,11 @@ Here is the updated list of features and ideas.
 
 ### To-Do 📋
 -   [ ] Submit a game directly from the scoresheet.
--   [ ] Make the app more mobile-friendly.
 -   [ ] Add a general stats page.
+    - [ ] Score distribution histogram (overall and per player)
+    - [ ] Standard deviation per player (box plot visualization)
+    - [ ] Games over time chart (games per day distribution)
+    - [ ] Highest and lowest row scores with game context (final score)
 
 ### Done ✅
 -   [x] Set the default number of players for a new game to 2 instead of 3.
@@ -21,6 +24,7 @@ Here is the updated list of features and ideas.
 ## Squash App
 
 ### To-Do 📋
+-   [ ] Improve the graphs so they are more readable.
 
 ### Done ✅
 -   [x] Add an in-depth Analysis tab with performance graphs over time.
