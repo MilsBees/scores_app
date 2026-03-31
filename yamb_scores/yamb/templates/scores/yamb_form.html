@@ -15,7 +15,7 @@
     {% for form in formset.forms %}
       {% if form.errors %}
         <div class="error-message">
-          <strong>Error for {{ form.player_name.value|default:"player" }}:</strong>
+          <strong>Error for {{ form.player.value|default:"player" }}:</strong>
           {% for field, errors in form.errors.items %}
             {% for error in errors %}
               <div>{{ error }}</div>
@@ -28,13 +28,13 @@
     <div class="card">
       {{ formset.management_form }}
       
-      <div id="scoresheet-container">
+      <div id="scoresheet-container" data-player-options='{{ players_json }}'>
       {% for form in formset.forms %}
         <div class="scoresheet-wrapper" style="margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 2px solid #ddd; position: relative;">
           {% if forloop.counter > 1 %}
             <button type="button" class="remove-scoresheet" style="position: absolute; top: 0; right: 0; background: #dc3545; color: white; border: none; border-radius: 4px; width: 32px; height: 32px; cursor: pointer; font-size: 20px; line-height: 1; padding: 0;">&times;</button>
           {% endif %}
-          <h3>{{ form.player_name.label }}: {{ form.player_name }}</h3>
+          <h3>{{ form.player.label }}: {{ form.player }}</h3>
           
           <div class="row-1-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
           <div class="row-2-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
@@ -175,8 +175,184 @@
       <button type="button" id="add-scoresheet" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">+ Add scoresheet</button>
     </div>
     
-    <button type="submit" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">Save and enter score</button>
+    <button type="submit" id="submit-btn" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">Save and enter score</button>
   </form>
+  
+  <script>
+    // Validate form before submission
+    document.getElementById('yamb-form').addEventListener('submit', function(e) {
+      const scoresheets = document.querySelectorAll('.scoresheet-wrapper');
+      const incompleteScores = [];
+      
+      scoresheets.forEach((wrapper, index) => {
+        const playerSelect = wrapper.querySelector('[name*="-player"]');
+        const finalScore = wrapper.querySelector('[name*="-final_score"]');
+        
+        // If player is selected but final score is empty, it's incomplete
+        if (playerSelect && playerSelect.value && finalScore && !finalScore.value) {
+          const playerName = playerSelect.options[playerSelect.selectedIndex]?.text || 'Player';
+          incompleteScores.push(`Scoresheet ${index + 1} (${playerName})`);
+        }
+      });
+      
+      if (incompleteScores.length > 0) {
+        const message = 'The following scoresheets are incomplete (player selected but no scores):\n\n' + 
+                       incompleteScores.join('\n') + 
+                       '\n\nDo you want to save them to return and complete later?';
+        
+        if (!confirm(message)) {
+          e.preventDefault(); // Don't submit the form
+        }
+      }
+    });
+  </script>
+
+  <!-- Template for new scoresheets (hidden) -->
+  <script type="text/template" id="scoresheet-template">
+    <div class="scoresheet-wrapper" style="margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 2px solid #ddd; position: relative;">
+      <button type="button" class="remove-scoresheet" style="position: absolute; top: 0; right: 0; background: #dc3545; color: white; border: none; border-radius: 4px; width: 32px; height: 32px; cursor: pointer; font-size: 20px; line-height: 1; padding: 0;">&times;</button>
+      {% with form=formset.empty_form %}
+        <h3>{{ form.player.label }}: 
+          <select name="{{ form.player.html_name }}" id="{{ form.player.id_for_label }}" data-player-select>
+            <option value="">-- Select a player --</option>
+          </select>
+        </h3>
+        
+        <div class="row-1-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-2-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-3-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-4-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-5-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-6-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-h-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-l-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-fh-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-c-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-s-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        <div class="row-p-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
+        
+        <div class="scoresheet-container">
+          <table class="yamb-scoresheet">
+            <thead>
+              <tr>
+                <th>Row</th>
+                <th>↓</th>
+                <th>↑</th>
+                <th>L</th>
+                <th>S</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1</strong></td>
+                <td>{{ form.row_1_down }}</td>
+                <td>{{ form.row_1_up }}</td>
+                <td>{{ form.row_1_l }}</td>
+                <td>{{ form.row_1_s }}</td>
+                <td>{{ form.row_1_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>2</strong></td>
+                <td>{{ form.row_2_down }}</td>
+                <td>{{ form.row_2_up }}</td>
+                <td>{{ form.row_2_l }}</td>
+                <td>{{ form.row_2_s }}</td>
+                <td>{{ form.row_2_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>3</strong></td>
+                <td>{{ form.row_3_down }}</td>
+                <td>{{ form.row_3_up }}</td>
+                <td>{{ form.row_3_l }}</td>
+                <td>{{ form.row_3_s }}</td>
+                <td>{{ form.row_3_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>4</strong></td>
+                <td>{{ form.row_4_down }}</td>
+                <td>{{ form.row_4_up }}</td>
+                <td>{{ form.row_4_l }}</td>
+                <td>{{ form.row_4_s }}</td>
+                <td>{{ form.row_4_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>5</strong></td>
+                <td>{{ form.row_5_down }}</td>
+                <td>{{ form.row_5_up }}</td>
+                <td>{{ form.row_5_l }}</td>
+                <td>{{ form.row_5_s }}</td>
+                <td>{{ form.row_5_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>6</strong></td>
+                <td>{{ form.row_6_down }}</td>
+                <td>{{ form.row_6_up }}</td>
+                <td>{{ form.row_6_l }}</td>
+                <td>{{ form.row_6_s }}</td>
+                <td>{{ form.row_6_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>H</strong></td>
+                <td>{{ form.row_h_down }}</td>
+                <td>{{ form.row_h_up }}</td>
+                <td>{{ form.row_h_l }}</td>
+                <td>{{ form.row_h_s }}</td>
+                <td>{{ form.row_h_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>L</strong></td>
+                <td>{{ form.row_l_down }}</td>
+                <td>{{ form.row_l_up }}</td>
+                <td>{{ form.row_l_l }}</td>
+                <td>{{ form.row_l_s }}</td>
+                <td>{{ form.row_l_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>FH</strong></td>
+                <td>{{ form.row_fh_down }}</td>
+                <td>{{ form.row_fh_up }}</td>
+                <td>{{ form.row_fh_l }}</td>
+                <td>{{ form.row_fh_s }}</td>
+                <td>{{ form.row_fh_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>C</strong></td>
+                <td>{{ form.row_c_down }}</td>
+                <td>{{ form.row_c_up }}</td>
+                <td>{{ form.row_c_l }}</td>
+                <td>{{ form.row_c_s }}</td>
+                <td>{{ form.row_c_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>S</strong></td>
+                <td>{{ form.row_s_down }}</td>
+                <td>{{ form.row_s_up }}</td>
+                <td>{{ form.row_s_l }}</td>
+                <td>{{ form.row_s_s }}</td>
+                <td>{{ form.row_s_total }}</td>
+              </tr>
+              <tr>
+                <td><strong>P</strong></td>
+                <td>{{ form.row_p_down }}</td>
+                <td>{{ form.row_p_up }}</td>
+                <td>{{ form.row_p_l }}</td>
+                <td>{{ form.row_p_s }}</td>
+                <td>{{ form.row_p_total }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top: 1rem;">
+          <label for="{{ form.final_score.id_for_label }}" style="font-weight: bold;">{{ form.final_score.label }}:</label>
+          {{ form.final_score }}
+        </div>
+        
+        <input type="hidden" name="{{ form.DELETE.html_name }}" id="{{ form.DELETE.id_for_label }}">
+      {% endwith %}
+    </div>
+  </script>
 
   <script src="{% static 'yamb/js/scoresheet.js' %}"></script>
 

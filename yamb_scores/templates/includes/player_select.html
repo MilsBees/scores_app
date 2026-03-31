@@ -1,0 +1,11 @@
+{# Player selection dropdown - shared across Squash and Yamb #}
+{# Usage: {% include 'includes/player_select.html' with form=form %} #}
+
+<select name="{{ form.html_name }}" class="player-select" {% if form.field.required %}required{% endif %}>
+  {{ form.as_widget }}
+</select>
+{% if form.errors %}
+  <div class="field-error">
+    {% for error in form.errors %}{{ error }}{% endfor %}
+  </div>
+{% endif %}

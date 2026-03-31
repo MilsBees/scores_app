@@ -10,12 +10,69 @@ document.addEventListener('DOMContentLoaded', function() {
     return; // Not on the scoresheet form page
   }
   
+  // Populate the initial form's player select with all options from data attribute
+  const playersData = container?.getAttribute('data-player-options');
+  if (playersData) {
+    try {
+      const players = JSON.parse(playersData);
+      const firstPlayerSelect = document.querySelector('#id_yamb_scoresheets-0-player');
+      if (firstPlayerSelect) {
+        // Get current value to preserve selection
+        const currentValue = firstPlayerSelect.value;
+        // Clear and rebuild options
+        firstPlayerSelect.innerHTML = '<option value="">-- Select a player --</option>' +
+          players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        // Restore selection if it exists
+        if (currentValue) {
+          firstPlayerSelect.value = currentValue;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to populate initial player select:', e);
+    }
+  }
+  
+  // Get player select options HTML from data attribute or first form
+  function getPlayerSelectHTML(formCount) {
+    let playerOptionsHTML = '';
+    
+    // First try to get players from data attribute
+    const containerElement = document.getElementById('scoresheet-container');
+    const playersData = containerElement?.getAttribute('data-player-options');
+    
+    if (playersData) {
+      try {
+        const players = JSON.parse(playersData);
+        playerOptionsHTML = players
+          .map(player => `<option value="${player.id}">${player.name}</option>`)
+          .join('');
+      } catch (e) {
+        console.error('Failed to parse player data:', e);
+      }
+    } else {
+      // Fallback: try to get from existing select on page
+      const firstPlayerSelect = document.querySelector('#id_yamb_scoresheets-0-player');
+      if (firstPlayerSelect) {
+        playerOptionsHTML = Array.from(firstPlayerSelect.options)
+          .filter(option => option.value !== '') // Exclude empty option from fallback
+          .map(option => `<option value="${option.value}">${option.text}</option>`)
+          .join('');
+      }
+    }
+    
+    // Always include empty option first
+    const optionsHTML = `<option value="">-- Select a player --</option>${playerOptionsHTML}`;
+    
+    return `<select name="yamb_scoresheets-${formCount}-player" id="id_yamb_scoresheets-${formCount}-player" class="form-control">${optionsHTML}</select>`;
+  }
+  
   // Template for a new scoresheet
   function createNewScoresheet(formCount) {
+    const playerSelectHTML = getPlayerSelectHTML(formCount);
     const template = `
       <div class="scoresheet-wrapper" style="margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 2px solid #ddd; position: relative;">
         <button type="button" class="remove-scoresheet" style="position: absolute; top: 0; right: 0; background: #dc3545; color: white; border: none; border-radius: 4px; width: 32px; height: 32px; cursor: pointer; font-size: 20px; line-height: 1; padding: 0;">&times;</button>
-        <h3>Player name: <input type="text" name="yamb_scoresheets-${formCount}-player_name" maxlength="100" id="id_yamb_scoresheets-${formCount}-player_name"></h3>
+        <h3>Player: ${playerSelectHTML}</h3>
         
         <div class="row-1-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
         <div class="row-2-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
@@ -44,95 +101,95 @@ document.addEventListener('DOMContentLoaded', function() {
             </thead>
             <tbody>
               <tr><td><strong>1</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_1_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>2</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_s" class="score-input" inputmode="text"></td>
-                  <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_s" class="score-input" inputmode="numeric"></td>
+                  <td><input type="text" name="yamb_scoresheets-${formCount}-row_2_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>3</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_3_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>4</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_4_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>5</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_5_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>6</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_6_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>H</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_h_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>L</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_l_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>FH</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_fh_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>C</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_c_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>S</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_s_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
               <tr><td><strong>P</strong></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_down" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_up" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_l" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_s" class="score-input" inputmode="text"></td>
-                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_total" class="score-input" inputmode="text" readonly></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_down" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_up" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_l" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_s" class="score-input" inputmode="numeric"></td>
+                <td><input type="text" name="yamb_scoresheets-${formCount}-row_p_total" class="score-input" inputmode="numeric" readonly></td>
               </tr>
             </tbody>
           </table>
         </div>
         
         <div style="margin-top: 0.5rem;">
-          <label><strong>Final Score:</strong> <input type="text" name="yamb_scoresheets-${formCount}-final_score" class="score-input" inputmode="text" readonly></label>
+          <label><strong>Final Score:</strong> <input type="text" name="yamb_scoresheets-${formCount}-final_score" class="score-input" inputmode="numeric" readonly></label>
         </div>
         
         <input type="hidden" name="yamb_scoresheets-${formCount}-DELETE" id="id_yamb_scoresheets-${formCount}-DELETE">
@@ -211,7 +268,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const errors = [];
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 5)) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name} column: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 5)) {
         errors.push(`${f.name} column: ${f.value} is invalid (must be 0-5)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';
@@ -293,7 +357,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const errors = [];
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 5)) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name} column: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 5)) {
         errors.push(`${f.name} column: ${f.value} is invalid (must be 0-5)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';
@@ -374,7 +445,14 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const errors = [];
       fields.forEach(f => {
-        if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 5)) {
+        // Check if field has text but is not a valid number
+        if (f.field.value.trim() !== '' && isNaN(f.value)) {
+          errors.push(`${f.name} column: must be a number`);
+          if (showErrors) {
+            f.field.style.borderColor = '#c33';
+            f.field.style.borderWidth = '2px';
+          }
+        } else if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 5)) {
           errors.push(`${f.name} column: ${f.value} is invalid (must be 0-5)`);
           if (showErrors) {
             f.field.style.borderColor = '#c33';
@@ -486,7 +564,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validate range for H row
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 30)) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name}: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 30)) {
         errors.push(`${f.name}: ${f.value} is invalid (must be 0-30)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';
@@ -658,7 +743,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validate range for L row
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 30)) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name}: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && (f.value < 0 || f.value > 30)) {
         errors.push(`${f.name}: ${f.value} is invalid (must be 0-30)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';
@@ -797,7 +889,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const errors = [];
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 40) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name}: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 40) {
         errors.push(`${f.name}: ${f.value} is invalid (must be 0 or 40)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';
@@ -861,7 +960,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const errors = [];
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 60) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name}: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 60) {
         errors.push(`${f.name}: ${f.value} is invalid (must be 0 or 60)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';
@@ -925,7 +1031,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const errors = [];
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 80) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name}: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 80) {
         errors.push(`${f.name}: ${f.value} is invalid (must be 0 or 80)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';
@@ -989,7 +1102,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const errors = [];
     fields.forEach(f => {
-      if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 100) {
+      // Check if field has text but is not a valid number
+      if (f.field.value.trim() !== '' && isNaN(f.value)) {
+        errors.push(`${f.name}: must be a number`);
+        if (showErrors) {
+          f.field.style.borderColor = '#c33';
+          f.field.style.borderWidth = '2px';
+        }
+      } else if (f.value !== null && !isNaN(f.value) && f.value !== 0 && f.value !== 100) {
         errors.push(`${f.name}: ${f.value} is invalid (must be 0 or 100)`);
         if (showErrors) {
           f.field.style.borderColor = '#c33';

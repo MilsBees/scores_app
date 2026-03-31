@@ -1,13 +1,27 @@
-A Django web application for recording and tracking scores from games of Yamb (a dice game). Track individual game sessions with multiple players, view player statistics, and explore high and low score leaderboards.
+A Django web application for recording and tracking scores from multiple games. Track Yamb dice game sessions and Squash match results with player statistics, leaderboards, and detailed performance analytics.
 
 ## Features
 
-- **Record Games**: Log games with any number of players and their scores
+### Yamb (Dice Game)
+- **Record Games**: Log Yamb games with any number of players and automatic score calculations
+- **Scoresheet Tracking**: Comprehensive scoresheets with automatic row and column totals
 - **Player Leaderboard**: View player statistics sorted by Best Score, Average Score, or Games Played
-- **High Scores**: Top 10 individual scores ever recorded
-- **Low Scores**: Bottom 10 individual scores ever recorded
+- **High/Low Scores**: Top 10 and Bottom 10 individual scores ever recorded
+- **Game History**: Browse recent games with detailed score breakdowns
+
+### Squash (Racquet Sport)
+- **Match Recording**: Log matches between two players with set-by-set results
+- **Session Management**: Group multiple matches from a single play session
+- **Player Leaderboard**: Relative and absolute player rankings with match/set/point statistics
+- **Head-to-Head Analysis**: View detailed records between specific player pairings
+- **Performance Analysis**: Historical performance trends with customizable date ranges and visualizations
+- **Player Management**: Add and manage squash players
+
+### General
+- **Unified Dashboard**: Home page with links to all available sports/games
 - **Mobile Friendly**: Responsive design that works on desktop and mobile devices
-- **Admin Interface**: Django admin panel for managing games, players, and scores
+- **Admin Interface**: Django admin panel for managing all data
+- **Consistent UI**: Shared template structure across all applications
 
 ## Prerequisites
 

@@ -9,6 +9,12 @@ urlpatterns = [
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('player-stats/', views.player_stats, name='player_stats'),
     
+    # Player management
+    path('players/', views.player_list, name='player_list'),
+    path('players/new/', views.new_player, name='new_player'),
+    path('players/<int:pk>/edit/', views.edit_player, name='edit_player'),
+    path('players/<int:pk>/delete/', views.delete_player, name='delete_player'),
+    
     # Yamb scoresheet routes
     path('yamb/', views.yamb_list, name='yamb_list'),
     path('yamb/new/', views.new_yamb, name='new_yamb'),

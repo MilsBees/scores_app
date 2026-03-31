@@ -1,0 +1,26 @@
+{# Game score row - can be used for both initial forms and dynamically added rows #}
+<tr class="formset-row" data-form-index="{{ form_index }}">
+  <td>
+    {% if initial_form %}
+      {{ form.player_name }}
+      {% for err in form.player_name.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+    {% else %}
+      <input type="text" name="scores-{{ form_index }}-player_name" maxlength="100">
+    {% endif %}
+  </td>
+  <td>
+    {% if initial_form %}
+      {{ form.score }}
+    {% else %}
+      <input type="number" name="scores-{{ form_index }}-score">
+    {% endif %}
+  </td>
+  <td>
+    <input type="hidden" name="scores-{{ form_index }}-DELETE">
+    {% if not first_row %}
+      <button type="button" class="delete-row">Delete</button>
+    {% else %}
+      —
+    {% endif %}
+  </td>
+</tr>

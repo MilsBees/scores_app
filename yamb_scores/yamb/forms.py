@@ -4,25 +4,6 @@ from django.core.exceptions import ValidationError
 from .models import Game, Score, Player, YambGame, YambScoresheet
 
 
-class PlayerNameMixin:
-    """Mixin for forms that handle player names with normalization and case-insensitive lookup"""
-    
-    def clean_player_name(self):
-        name = self.cleaned_data['player_name'].strip()
-        if not name:
-            raise forms.ValidationError("Player name required")
-        # Normalize to title case (capitalize first letter of each word)
-        return name.title()
-    
-    def get_or_create_player(self, player_name):
-        """Get existing player using case-insensitive lookup or create new one"""
-        try:
-            player = Player.objects.get(name__iexact=player_name)
-        except Player.DoesNotExist:
-            player = Player.objects.create(name=player_name)
-        return player
-
-
 class FriendlyErrorMixin:
     """Mixin to provide user-friendly error messages for common validation errors"""
     
@@ -45,14 +26,44 @@ class GameForm(forms.ModelForm):
         model = Game
         fields = []
 
-class ScoreForm(FriendlyErrorMixin, PlayerNameMixin, forms.ModelForm):
-    player_name = forms.CharField(max_length=100, required=False, label="Player name")
+
+class PlayerForm(forms.ModelForm):
+    """Form for creating and editing players"""
+    class Meta:
+        model = Player
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Player name'})
+        }
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '').strip()
+        if not name:
+            raise forms.ValidationError("Player name is required.")
+        
+        # Check for case-insensitive duplicates (excluding the current instance if editing)
+        existing = Player.objects.filter(name__iexact=name)
+        if self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        
+        if existing.exists():
+            raise forms.ValidationError(f"A player with the name '{name}' already exists.")
+        
+        return name.title()
+
+
+class ScoreForm(FriendlyErrorMixin, forms.ModelForm):
+    player = forms.ModelChoiceField(
+        queryset=Player.objects.all().order_by('name'),
+        required=False,
+        label="Player",
+    )
 
     class Meta:
         model = Score
         fields = ['score']
         widgets = {
-            'score': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text'}),
+            'score': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'numeric'}),
         }
 
     def clean(self):
@@ -64,22 +75,20 @@ class ScoreForm(FriendlyErrorMixin, PlayerNameMixin, forms.ModelForm):
             return cleaned_data
         
         # Check if form has any data (not completely empty)
-        player_name = cleaned_data.get('player_name', '').strip()
+        player = cleaned_data.get('player')
         score = cleaned_data.get('score')
-        has_any_data = bool(player_name or score)
+        has_any_data = bool(player or score)
         
         # Only validate if the form has any data entered
         if has_any_data:
-            if not player_name:
-                self.add_error('player_name', 'Player name is required')
+            if not player:
+                self.add_error('player', 'Player is required')
         
         return cleaned_data
 
     def save(self, commit=True):
-        player_name = self.cleaned_data.get('player_name')
-        player = self.get_or_create_player(player_name)
         score = super().save(commit=False)
-        score.player = player
+        score.player = self.cleaned_data.get('player')
         if commit:
             score.save()
         return score
@@ -103,12 +112,19 @@ class YambGameForm(forms.ModelForm):
         fields = []
 
 
-class YambScoresheetForm(FriendlyErrorMixin, PlayerNameMixin, forms.ModelForm):
-    player_name = forms.CharField(max_length=100, required=False, label="Player name")
+class YambScoresheetForm(FriendlyErrorMixin, forms.ModelForm):
+    player = forms.ModelChoiceField(
+        queryset=Player.objects.all().order_by('name'),
+        required=True,
+        label="Player",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="-- Select a player --",
+    )
 
     class Meta:
         model = YambScoresheet
         fields = [
+            'player',
             'row_1_down', 'row_1_up', 'row_1_l', 'row_1_s', 'row_1_total',
             'row_2_down', 'row_2_up', 'row_2_l', 'row_2_s', 'row_2_total',
             'row_3_down', 'row_3_up', 'row_3_l', 'row_3_s', 'row_3_total',
@@ -125,21 +141,21 @@ class YambScoresheetForm(FriendlyErrorMixin, PlayerNameMixin, forms.ModelForm):
         ]
         # Make row totals readonly since they're calculated automatically
         widgets = {
-            **{f: forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text'}) 
-               for f in fields if f != 'player_name' and f not in ['row_1_total', 'row_2_total', 'row_3_total', 'row_4_total', 'row_5_total', 'row_6_total', 'row_h_total', 'row_l_total', 'row_fh_total', 'row_c_total', 'row_s_total', 'row_p_total', 'final_score']},
-            'row_1_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_2_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_3_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_4_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_5_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_6_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_h_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_l_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_fh_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_c_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_s_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'row_p_total': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
-            'final_score': forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'text', 'readonly': 'readonly'}),
+            **{f: forms.TextInput(attrs={'class': 'score-input', 'inputmode': 'numeric'}) 
+               for f in fields if f not in ['player', 'row_1_total', 'row_2_total', 'row_3_total', 'row_4_total', 'row_5_total', 'row_6_total', 'row_h_total', 'row_l_total', 'row_fh_total', 'row_c_total', 'row_s_total', 'row_p_total', 'final_score']},
+            'row_1_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_2_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_3_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_4_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_5_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_6_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_h_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_l_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_fh_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_c_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_s_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'row_p_total': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
+            'final_score': forms.TextInput(attrs={'class': 'score-input', 'readonly': 'readonly'}),
         }
     
     def calculate_row_1_total(self, row_1_down, row_1_up, row_1_l, row_1_s):
@@ -536,24 +552,21 @@ class YambScoresheetForm(FriendlyErrorMixin, PlayerNameMixin, forms.ModelForm):
         
 
         # Check if form has any data (not completely empty)
-        player_name = cleaned_data.get('player_name', '').strip()
+        player = cleaned_data.get('player')
         # Check if any scoresheet field has data
         has_scoresheet_data = any(
             cleaned_data.get(field) is not None and cleaned_data.get(field) != ''
-            for field in self.fields if field != 'player_name'
+            for field in self.fields if field != 'player'
         )
-        has_any_data = bool(player_name or has_scoresheet_data)
         
-        # Only validate if the form has any data entered
-        if has_any_data:
-            if not player_name:
-                self.add_error('player_name', 'Player name is required')
+        # Player must be provided if this form has any scoresheet data
+        if has_scoresheet_data and not player:
+            self.add_error('player', 'Player is required')
         
         return cleaned_data
 
     def save(self, commit=True):
-        player_name = self.cleaned_data.get('player_name')
-        player = self.get_or_create_player(player_name)
+        player = self.cleaned_data.get('player')
         scoresheet = super().save(commit=False)
         scoresheet.player = player
         if commit:

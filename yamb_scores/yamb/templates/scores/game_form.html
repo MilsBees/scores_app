@@ -33,16 +33,20 @@
         </thead>
         <tbody id="formset-tbody">
           {% for form in formset.forms %}
-          <tr class="formset-row">
+          <tr class="formset-row" data-form-index="{{ forloop.counter0 }}">
             <td>
-              {{ form.player_name }}
-              {% for err in form.player_name.errors %}<div style="color:red">{{ err }}</div>{% endfor %}
+              {{ form.player }}
+              {% for err in form.player.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
             </td>
-            <td>{{ form.score }}</td>
+            <td>
+              {{ form.score }}
+            </td>
             <td>
               <input type="hidden" name="scores-{{ forloop.counter0 }}-DELETE">
               {% if forloop.counter > 1 %}
                 <button type="button" class="delete-row">Delete</button>
+              {% else %}
+                —
               {% endif %}
             </td>
           </tr>
@@ -51,7 +55,7 @@
       </table>
       <button type="button" id="add-row" style="margin-top: 1rem;">+ Add player</button>
     </div>
-    <button type="submit" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">Save game</button>
+    <button type="submit" class="btn-success">Save game</button>
   </form>
 
   <script>
@@ -66,10 +70,15 @@
       const formCount = parseInt(totalFormsInput.value);
       const newRow = document.createElement('tr');
       newRow.className = 'formset-row';
+      newRow.setAttribute('data-form-index', formCount);
+      
+      // Get player options from first dropdown
+      const firstPlayerSelect = document.querySelector('select[name*="-player"]');
+      const playerOptions = firstPlayerSelect ? firstPlayerSelect.innerHTML : '<option value="">-- Select a player --</option>';
       
       const emptyForm = `
-        <td><input type="text" name="scores-${formCount}-player_name" maxlength="100"></td>
-        <td><input type="number" name="scores-${formCount}-score"></td>
+        <td><select name="scores-${formCount}-player" required>${playerOptions}</select></td>
+        <td><input type="text" name="scores-${formCount}-score" class="score-input" inputmode="numeric"></td>
         <td>
           <input type="hidden" name="scores-${formCount}-DELETE">
           <button type="button" class="delete-row">Delete</button>

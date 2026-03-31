@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, Avg, Max, Count, Min
 from django.urls import reverse
 from .models import Game, Player, Score, YambGame, YambScoresheet
-from .forms import GameForm, ScoreFormSet, YambGameForm, YambScoresheetFormSet, YambScoresheetForm
+from .forms import GameForm, ScoreFormSet, YambGameForm, YambScoresheetFormSet, YambScoresheetForm, PlayerForm
 
 def game_list(request):
     games = Game.objects.prefetch_related('scores__player').order_by('-played_at')[:50]
@@ -17,7 +17,7 @@ def new_game(request):
         try:
             yamb_game = YambGame.objects.get(id=yamb_game_id)
             initial_players = [
-                {'player_name': s.player.name, 'score': s.final_score}
+                {'player': s.player, 'score': s.final_score}
                 for s in yamb_game.yamb_scoresheets.all()
                 if s.final_score is not None
             ]
@@ -113,7 +113,17 @@ def new_yamb(request):
     else:
         form = YambGameForm()
         formset = YambScoresheetFormSet(instance=YambGame())
-    return render(request, 'scores/yamb_form.html', {'form': form, 'formset': formset})
+    
+    # Get all players for the JavaScript form builder
+    players = Player.objects.all().order_by('name').values('id', 'name')
+    import json
+    players_json = json.dumps(list(players))
+    
+    return render(request, 'scores/yamb_form.html', {
+        'form': form, 
+        'formset': formset,
+        'players_json': players_json,
+    })
 
 
 def yamb_detail(request, pk):
@@ -139,8 +149,6 @@ def edit_yamb_scoresheet(request, game_pk, scoresheet_pk):
             return redirect(f"{reverse('scores:new_game')}?yamb_game_id={yamb_game.id}")
     else:
         form = YambScoresheetForm(instance=scoresheet)
-        # Pre-fill the player_name field
-        form.initial['player_name'] = scoresheet.player.name
     
     return render(request, 'scores/edit_yamb_scoresheet.html', {
         'yamb_game': yamb_game,
@@ -217,3 +225,48 @@ def player_stats(request):
             "low_scores": low_scores,
         },
     )
+
+
+def player_list(request):
+    """List all players"""
+    players = Player.objects.all().order_by('name')
+    return render(request, 'scores/player_list.html', {'players': players})
+
+
+def new_player(request):
+    """Create a new player"""
+    if request.method == 'POST':
+        form = PlayerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('scores:player_list'))
+    else:
+        form = PlayerForm()
+    
+    return render(request, 'scores/new_player.html', {'form': form})
+
+
+def edit_player(request, pk):
+    """Edit an existing player"""
+    player = get_object_or_404(Player, pk=pk)
+    
+    if request.method == 'POST':
+        form = PlayerForm(request.POST, instance=player)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('scores:player_list'))
+    else:
+        form = PlayerForm(instance=player)
+    
+    return render(request, 'scores/edit_player.html', {'form': form, 'player': player})
+
+
+def delete_player(request, pk):
+    """Delete a player"""
+    player = get_object_or_404(Player, pk=pk)
+    
+    if request.method == 'POST':
+        player.delete()
+        return redirect(reverse('scores:player_list'))
+    
+    return render(request, 'scores/confirm_delete_player.html', {'player': player})

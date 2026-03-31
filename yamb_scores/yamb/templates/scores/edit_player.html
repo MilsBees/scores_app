@@ -1,0 +1,33 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Edit Player: {{ player.name }}</h2>
+  
+  <form method="post">
+    {% csrf_token %}
+    
+    {% if form.errors %}
+      <div class="error-message">
+        <strong>Please fix the following errors:</strong>
+        {% for field in form %}
+          {% for error in field.errors %}
+            <div>{{ field.label }}: {{ error }}</div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <div class="card">
+      <div style="margin-bottom: 1rem;">
+        {{ form.name.label }}: {{ form.name }}
+        {% if form.name.errors %}
+          <div class="field-error">
+            {% for error in form.name.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <button type="submit">Save Changes</button>
+    <a href="{% url 'scores:player_list' %}" style="padding: 0.5rem 1rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-left: 0.5rem;">Cancel</a>
+  </form>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load static %}
+
+{% block formset_row_css %}
+<style>
+  .formset-row-template {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+{# Template for rendering a single formset row #}
+{# Usage: {% include 'includes/formset_row.html' with form=form table_headers=True %} #}
+
+<tr class="formset-row">
+  {% for field in form %}
+    {% if field.name != 'DELETE' and field.name != 'id' %}
+      <td>
+        {% if field.label %}
+          {% if form_row_number %}
+            {% if forloop.first %}<strong>{{ form_row_number }}</strong>{% else %}{{ field }}{% endif %}
+          {% else %}
+            {{ field }}
+          {% endif %}
+        {% else %}
+          {{ field }}
+        {% endif %}
+        {% if field.errors %}
+          <div class="field-error">
+            {% for error in field.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </td>
+    {% endif %}
+  {% endfor %}
+  <td>
+    <input type="hidden" name="{{ form.prefix }}-DELETE" value="">
+    {% if not first_row %}
+      <button type="button" class="delete-row">Delete</button>
+    {% else %}
+      —
+    {% endif %}
+  </td>
+</tr>

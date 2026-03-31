@@ -8,8 +8,8 @@
     <div class="card">
       <h3>Player info</h3>
       <div style="margin-bottom: 1rem;">
-        <label for="{{ form.player_name.id_for_label }}" style="font-weight: bold;">{{ form.player_name.label }}:</label>
-        {{ form.player_name }}
+        <label for="{{ form.player.id_for_label }}" style="font-weight: bold;">{{ form.player.label }}:</label>
+        {{ form.player }}
       </div>
       
       <h3>Scoresheet</h3>
@@ -135,6 +135,135 @@
     <button type="submit" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">Save changes</button>
     <a href="{% url 'scores:yamb_detail' yamb_game.id %}" style="padding: 0.5rem 1rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-left: 0.5rem;">Cancel</a>
   </form>
+
+  <script>
+    // Attach calculation listeners for all scoresheet fields
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('form');
+      if (!form) return;
+      
+      // Helper function to attach listeners to input fields
+      function attachCalculationListeners() {
+        // Attach to all scoresheet input fields to recalculate totals
+        const inputs = form.querySelectorAll('input[name^="row_"]');
+        inputs.forEach(input => {
+          // Remove existing listeners by cloning
+          const newInput = input.cloneNode(true);
+          input.parentNode.replaceChild(newInput, input);
+          
+          // Add listeners for recalculation on input and blur
+          newInput.addEventListener('input', recalculateField);
+          newInput.addEventListener('blur', validateField);
+        });
+      }
+      
+      // Recalculate totals when any cell value changes
+      function recalculateField(e) {
+        const input = e.target;
+        const namePrefix = input.name.match(/^(row_\d+|row_[a-z]+)_/)[0];
+        recalculateRow(namePrefix);
+      }
+      
+      // Validate field on blur
+      function validateField(e) {
+        const input = e.target;
+        const namePrefix = input.name.match(/^(row_\d+|row_[a-z]+)_/)[0];
+        validateRow(namePrefix);
+      }
+      
+      // Recalculate a specific row's total
+      function recalculateRow(prefix) {
+        const downInput = form.querySelector(`[name="${prefix}down"]`);
+        const upInput = form.querySelector(`[name="${prefix}up"]`);
+        const lInput = form.querySelector(`[name="${prefix}l"]`);
+        const sInput = form.querySelector(`[name="${prefix}s"]`);
+        const totalInput = form.querySelector(`[name="${prefix}total"]`);
+        
+        if (!downInput || !upInput || !lInput || !sInput || !totalInput) return;
+        
+        const down = downInput.value ? parseInt(downInput.value) : null;
+        const up = upInput.value ? parseInt(upInput.value) : null;
+        const l = lInput.value ? parseInt(lInput.value) : null;
+        const s = sInput.value ? parseInt(sInput.value) : null;
+        
+        // Check if this is a special row (FH, C, S, P, H, L)
+        const rowType = prefix.match(/row_([a-z]+)_/)?.[1] || prefix.match(/row_(\d+)_/)?.[1];
+        
+        if (down !== null && up !== null && l !== null && s !== null &&
+            !isNaN(down) && !isNaN(up) && !isNaN(l) && !isNaN(s)) {
+          
+          let total = 0;
+          if (rowType === 'fh') {
+            total = down + up + l + s; // Just sum for FH
+          } else if (rowType === 'c') {
+            total = down + up + l + s; // Just sum for C
+          } else if (rowType === 's') {
+            total = down + up + l + s; // Just sum for S
+          } else if (rowType === 'p') {
+            total = down + up + l + s; // Just sum for P
+          } else if (rowType === 'h' || rowType === 'l') {
+            total = down + up + l + s; // Just sum for H and L
+          } else {
+            // Regular rows 1-6: (sum - 12) * multiplier
+            const multipliers = { 1: 10, 2: 20, 3: 30, 4: 40, 5: 50, 6: 60 };
+            const multiplier = multipliers[rowType] || 10;
+            total = (down + up + l + s - 12) * multiplier;
+          }
+          totalInput.value = total;
+        } else {
+          totalInput.value = '';
+        }
+        
+        recalculateFinalScore();
+      }
+      
+      // Validate a specific row
+      function validateRow(prefix) {
+        const downInput = form.querySelector(`[name="${prefix}down"]`);
+        const upInput = form.querySelector(`[name="${prefix}up"]`);
+        const lInput = form.querySelector(`[name="${prefix}l"]`);
+        const sInput = form.querySelector(`[name="${prefix}s"]`);
+        
+        const inputs = [downInput, upInput, lInput, sInput];
+        inputs.forEach(input => {
+          if (input.value.trim() !== '' && isNaN(parseInt(input.value))) {
+            input.style.borderColor = '#c33';
+            input.style.borderWidth = '2px';
+          } else {
+            input.style.borderColor = '';
+            input.style.borderWidth = '';
+          }
+        });
+      }
+      
+      // Recalculate final score from all row totals
+      function recalculateFinalScore() {
+        const finalScoreInput = form.querySelector('[name="final_score"]');
+        if (!finalScoreInput) return;
+        
+        const rowTotals = form.querySelectorAll('[name$="_total"]');
+        let sum = 0;
+        let allFilled = true;
+        
+        rowTotals.forEach(input => {
+          if (input.value.trim() === '') {
+            allFilled = false;
+          } else {
+            sum += parseInt(input.value) || 0;
+          }
+        });
+        
+        if (allFilled && rowTotals.length > 0) {
+          finalScoreInput.value = sum;
+        } else {
+          finalScoreInput.value = '';
+        }
+      }
+      
+      // Attach listeners when page loads
+      attachCalculationListeners();
+    });
+  </script>
 
   <style>
     .yamb-scoresheet {
