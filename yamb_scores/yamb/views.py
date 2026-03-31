@@ -49,6 +49,8 @@ def leaderboard(request):
     # Get sort parameter from query string (default to 'avg')
     sort_by = request.GET.get('sort', 'avg')
     direction = request.GET.get('dir', 'desc')
+    show_all = request.GET.get('show_all', 'false') == 'true'
+    
     if sort_by not in {'best', 'avg', 'games'}:
         sort_by = 'avg'
     if direction not in {'asc', 'desc'}:
@@ -60,6 +62,10 @@ def leaderboard(request):
         best_score=Max('scores__score'),
         games_played=Count('scores__game', distinct=True),
     )
+    
+    # Filter out players with fewer than 5 games unless show_all is True
+    if not show_all:
+        players = players.filter(games_played__gte=5)
     
     prefix = '-' if direction == 'desc' else ''
 
@@ -77,17 +83,22 @@ def leaderboard(request):
     # Get bottom 10 lowest individual scores
     low_scores = Score.objects.select_related('player').order_by('score')[:10]
     
+    # Build sort links with show_all parameter preserved
+    show_all_param = '&show_all=true' if show_all else ''
+    
     context = {
         'players': players,
         'top_scores': top_scores,
         'low_scores': low_scores,
         'sort_by': sort_by,
         'dir': direction,
+        'show_all': show_all,
         'sort_links': {
-            'best': f"sort=best&dir={'asc' if (sort_by == 'best' and direction == 'desc') else 'desc'}",
-            'avg': f"sort=avg&dir={'asc' if (sort_by == 'avg' and direction == 'desc') else 'desc'}",
-            'games': f"sort=games&dir={'asc' if (sort_by == 'games' and direction == 'desc') else 'desc'}",
+            'best': f"sort=best&dir={'asc' if (sort_by == 'best' and direction == 'desc') else 'desc'}{show_all_param}",
+            'avg': f"sort=avg&dir={'asc' if (sort_by == 'avg' and direction == 'desc') else 'desc'}{show_all_param}",
+            'games': f"sort=games&dir={'asc' if (sort_by == 'games' and direction == 'desc') else 'desc'}{show_all_param}",
         },
+        'toggle_link': f"?sort={sort_by}&dir={direction}&show_all={'false' if show_all else 'true'}",
     }
     return render(request, 'scores/leaderboard.html', context)
 

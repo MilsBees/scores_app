@@ -1,6 +1,20 @@
 {% extends "scores/base.html" %}
 {% block content %}
-  <h2>Player Leaderboard</h2>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2 style="margin: 0;">Player Leaderboard</h2>
+    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; margin: 0; cursor: pointer;">
+      <input type="checkbox" id="show-all-toggle" {% if show_all %}checked{% endif %} style="cursor: pointer;">
+      <span>Show players with &lt;5 games</span>
+    </label>
+  </div>
+  
+  <script>
+    document.getElementById('show-all-toggle').addEventListener('change', function() {
+      const baseUrl = window.location.pathname + '?sort={{ sort_by }}&dir={{ dir }}';
+      const newUrl = baseUrl + (this.checked ? '&show_all=true' : '&show_all=false');
+      window.location.href = newUrl;
+    });
+  </script>
 
   <table>
     <thead>
@@ -39,7 +53,7 @@
         <td>{{ p.games_played }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="5">No players yet.</td></tr>
+      <tr><td colspan="5">{% if not show_all %}No players with at least 5 games.{% else %}No players yet.{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
