@@ -202,6 +202,37 @@ document.addEventListener('DOMContentLoaded', function() {
   function removeScoresheet(e) {
     e.preventDefault();
     const wrapper = e.target.closest('.scoresheet-wrapper');
+    
+    // Check if scoresheet has any data
+    const inputs = wrapper.querySelectorAll('input[type="text"]');
+    let hasData = false;
+    
+    inputs.forEach(input => {
+      if (input.value.trim() !== '' && !input.hasAttribute('readonly')) {
+        hasData = true;
+      }
+    });
+    
+    // Get player name for the confirmation message
+    const playerSelect = wrapper.querySelector('[name*="-player"]');
+    const playerName = playerSelect && playerSelect.value ? 
+      playerSelect.options[playerSelect.selectedIndex]?.text : 
+      'this player';
+    
+    // If there's data, ask for confirmation
+    if (hasData) {
+      const message = `Remove scoresheet for ${playerName}? This has data and cannot be undone.`;
+      if (!confirm(message)) {
+        return; // Don't remove if user cancels
+      }
+    } else {
+      // Even for empty sheets, ask for confirmation to prevent accidents
+      const message = `Remove scoresheet for ${playerName}?`;
+      if (!confirm(message)) {
+        return;
+      }
+    }
+    
     wrapper.remove();
   }
   

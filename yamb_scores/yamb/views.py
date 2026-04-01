@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Sum, Avg, Max, Count, Min
+from django.db.models import Sum, Avg, Max, Count, Min, Q
+from django.db import models
 from django.urls import reverse
 from .models import Game, Player, Score, YambGame, YambScoresheet
 from .forms import GameForm, ScoreFormSet, YambGameForm, YambScoresheetFormSet, YambScoresheetForm, PlayerForm
@@ -281,3 +282,204 @@ def delete_player(request, pk):
         return redirect(reverse('scores:player_list'))
     
     return render(request, 'scores/confirm_delete_player.html', {'player': player})
+
+
+def yamb_statistics(request):
+    """Option 1: Dedicated statistics page with detailed charts and visualizations"""
+    import json
+    from collections import Counter
+    from statistics import stdev
+    
+    # Get all scores from squash games
+    all_scores_qs = Score.objects.all()
+    all_scores = [s.score for s in all_scores_qs]
+    total_games = all_scores_qs.count()  # Each Score = 1 game (player participation)
+    avg_score = sum(all_scores) / len(all_scores) if all_scores else 0
+    high_score = max(all_scores) if all_scores else None
+    low_score = min(all_scores) if all_scores else None
+    
+    # Score distribution data for histogram - fixed buckets from min to max score
+    score_bins = {}
+    bucket_size = 10
+    min_bucket = (min(all_scores) // bucket_size) * bucket_size if all_scores else 0
+    max_bucket = (max(all_scores) // bucket_size) * bucket_size + bucket_size if all_scores else bucket_size
+    
+    # Initialize all buckets
+    for bucket_start in range(min_bucket, max_bucket, bucket_size):
+        bucket_label = f"{bucket_start}-{bucket_start + bucket_size}"
+        score_bins[bucket_label] = 0
+    
+    # Assign scores to buckets
+    for score in all_scores:
+        bucket_start = (score // bucket_size) * bucket_size
+        bucket_label = f"{bucket_start}-{bucket_start + bucket_size}"
+        if bucket_label in score_bins:
+            score_bins[bucket_label] += 1
+    
+    # Player stats with standard deviation
+    players = Player.objects.annotate(
+        avg_score=Avg('scores__score'),
+        games_played=Count('scores'),
+    ).filter(games_played__gt=0).order_by('-avg_score')
+    
+    # Count unique players
+    unique_players_count = players.count()
+    
+    # Calculate std dev and box plot data for each player
+    player_stats = []
+    player_box_data = {}
+    for player in players:
+        player_scores = list(player.scores.values_list('score', flat=True))
+        if player_scores and len(player_scores) > 1:
+            try:
+                std_dev = stdev(player_scores)
+            except:
+                std_dev = 0
+        else:
+            std_dev = 0
+        
+        player_stats.append({
+            'player': player,
+            'avg_score': player.avg_score,
+            'std_dev': std_dev,
+            'min': min(player_scores) if player_scores else None,
+            'max': max(player_scores) if player_scores else None,
+            'count': player.games_played,
+        })
+        
+        # Store scores for box plot
+        player_box_data[player.name] = sorted(player_scores)
+    
+    # Games over time - count scores by date
+    scores_all = Score.objects.all().select_related('game')
+    games_by_date = {}
+    for score in scores_all:
+        date_key = score.game.played_at.strftime('%Y-%m-%d')
+        games_by_date[date_key] = games_by_date.get(date_key, 0) + 1
+    
+    # Row extremes - based on Yamb scoresheets (highest/lowest per row)
+    scoresheets_yamb = YambScoresheet.objects.filter(final_score__isnull=False)
+    row_fields = ['row_1_total', 'row_2_total', 'row_3_total', 'row_4_total', 'row_5_total', 'row_6_total',
+                  'row_h_total', 'row_l_total', 'row_fh_total', 'row_c_total', 'row_s_total', 'row_p_total']
+    
+    row_extremes = []
+    for row_field in row_fields:
+        # Get high extremes
+        high_sheets = list(scoresheets_yamb.filter(**{f'{row_field}__isnull': False}).order_by(f'-{row_field}'))
+        high_value = None
+        high_display = None
+        high_tooltip = None
+        if high_sheets:
+            high_value = getattr(high_sheets[0], row_field)
+            # Get all sheets with this value
+            sheets_with_high = [s for s in high_sheets if getattr(s, row_field) == high_value]
+            if len(sheets_with_high) == 1:
+                high_display = f"{sheets_with_high[0].player.name} ({high_value})"
+            elif len(sheets_with_high) == 2:
+                high_display = f"{sheets_with_high[0].player.name}, {sheets_with_high[1].player.name} ({high_value})"
+            else:
+                high_display = f"Multiple players ({high_value})"
+                high_tooltip = ", ".join([s.player.name for s in sheets_with_high])
+        
+        # Get low extremes
+        low_sheets = list(scoresheets_yamb.filter(**{f'{row_field}__isnull': False}).order_by(f'{row_field}'))
+        low_value = None
+        low_display = None
+        low_tooltip = None
+        if low_sheets:
+            low_value = getattr(low_sheets[0], row_field)
+            # Get all sheets with this value
+            sheets_with_low = [s for s in low_sheets if getattr(s, row_field) == low_value]
+            if len(sheets_with_low) == 1:
+                low_display = f"{sheets_with_low[0].player.name} ({low_value})"
+            elif len(sheets_with_low) == 2:
+                low_display = f"{sheets_with_low[0].player.name}, {sheets_with_low[1].player.name} ({low_value})"
+            else:
+                low_display = f"Multiple players ({low_value})"
+                low_tooltip = ", ".join([s.player.name for s in sheets_with_low])
+        
+        row_name = row_field.replace('row_', '').replace('_total', '').upper()
+        row_extremes.append({
+            'row': row_name,
+            'highest': high_display,
+            'highest_tooltip': high_tooltip,
+            'lowest': low_display,
+            'lowest_tooltip': low_tooltip,
+        })
+    
+    context = {
+        'total_games': total_games,
+        'avg_score': f"{avg_score:.1f}",
+        'high_score': high_score,
+        'low_score': low_score,
+        'unique_players_count': unique_players_count,
+        'score_bins': json.dumps(score_bins),
+        'player_stats': player_stats,
+        'player_box_data': json.dumps(player_box_data),
+        'games_by_date': json.dumps(games_by_date),
+        'row_extremes': row_extremes,
+    }
+    
+    return render(request, 'scores/yamb_statistics.html', context)
+
+
+def yamb_dashboard(request):
+    """Option 3: Dashboard-style page with summary metrics and navigation"""
+    import json
+    from statistics import stdev
+    
+    # Get all scoresheets
+    scoresheets = YambScoresheet.objects.filter(final_score__isnull=False)
+    
+    # Key metrics
+    all_scores = [s.final_score for s in scoresheets]
+    total_games = YambGame.objects.count()
+    total_scoresheets = scoresheets.count()
+    total_players = Player.objects.filter(yamb_scoresheets__final_score__isnull=False).distinct().count()
+    avg_score = sum(all_scores) / len(all_scores) if all_scores else 0
+    high_score = max(all_scores) if all_scores else None
+    low_score = min(all_scores) if all_scores else None
+    
+    # Top players by average
+    top_players = Player.objects.annotate(
+        avg_score=Avg('yamb_scoresheets__final_score'),
+        games_count=Count('yamb_scoresheets', filter=Q(yamb_scoresheets__final_score__isnull=False)),
+    ).filter(games_count__gte=1).order_by('-avg_score')[:5]
+    
+    # Most recent games
+    recent_games = YambGame.objects.prefetch_related('yamb_scoresheets__player').order_by('-created_at')[:5]
+    
+    # Consistency metrics (lowest std dev = most consistent)
+    players = Player.objects.annotate(
+        games_played=Count('yamb_scoresheets', filter=Q(yamb_scoresheets__final_score__isnull=False)),
+    ).filter(games_played__gte=2)
+    
+    consistency = []
+    for player in players:
+        player_scores = list(player.yamb_scoresheets.filter(final_score__isnull=False).values_list('final_score', flat=True))
+        if len(player_scores) > 1:
+            try:
+                std_dev = stdev(player_scores)
+                consistency.append({
+                    'player': player,
+                    'std_dev': std_dev,
+                    'avg': sum(player_scores) / len(player_scores),
+                })
+            except:
+                pass
+    
+    most_consistent = sorted(consistency, key=lambda x: x['std_dev'])[:3]
+    
+    context = {
+        'total_games': total_games,
+        'total_scoresheets': total_scoresheets,
+        'total_players': total_players,
+        'avg_score': f"{avg_score:.1f}",
+        'high_score': high_score,
+        'low_score': low_score,
+        'top_players': top_players,
+        'recent_games': recent_games,
+        'most_consistent': most_consistent,
+    }
+    
+    return render(request, 'scores/yamb_dashboard.html', context)

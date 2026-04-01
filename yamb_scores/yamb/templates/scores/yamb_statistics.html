@@ -1,0 +1,213 @@
+{% extends "scores/base.html" %}
+{% load static %}
+{% block content %}
+  <h2>Yamb Statistics</h2>
+
+  <!-- Key Metrics -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #007bff;">
+      <div style="font-size: 0.9rem; color: #666;">Total Games</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ total_games }}</div>
+    </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #6f42c1;">
+      <div style="font-size: 0.9rem; color: #666;">Unique Players</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ unique_players_count }}</div>
+    </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #17a2b8;">
+      <div style="font-size: 0.9rem; color: #666;">Average Score</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ avg_score }}</div>
+    </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #ffc107;">
+      <div style="font-size: 0.9rem; color: #666;">High / Low</div>
+      <div style="font-size: 1.5rem; font-weight: bold;">{{ high_score }} / {{ low_score }}</div>
+    </div>
+  </div>
+
+  <!-- Score Distribution -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Score Distribution Histogram</h3>
+    <div style="position: relative; width: 100%; height: 400px; overflow: hidden;">
+      <canvas id="score-distribution-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Games Over Time -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Games Over Time</h3>
+    <div style="position: relative; width: 100%; height: 300px; overflow: hidden;">
+      <canvas id="games-timeline-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Player Statistics with Box Plots -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Player Performance</h3>
+    <div id="player-boxplot-chart" style="width: 100%;"></div>
+  </div>
+
+  <!-- Row Extremes -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Row Extremes (Per Row Best & Worst)</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f8f9fa;">
+          <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Row</th>
+          <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Highest Score</th>
+          <th style="padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd;">Lowest Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for extreme in row_extremes %}
+        <tr>
+          <td style="padding: 0.75rem; border-bottom: 1px solid #eee; font-weight: bold;">{{ extreme.row }}</td>
+          <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">
+            {% if extreme.highest %}
+              <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.highest_tooltip %}help{% else %}default{% endif %};" {% if extreme.highest_tooltip %}title="Players: {{ extreme.highest_tooltip }}"{% endif %}>{{ extreme.highest }}</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">
+            {% if extreme.lowest %}
+              <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.lowest_tooltip %}help{% else %}default{% endif %};" {% if extreme.lowest_tooltip %}title="Players: {{ extreme.lowest_tooltip }}"{% endif %}>{{ extreme.lowest }}</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" style="padding: 0.75rem; text-align: center; color: #999;">No data yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    // Score Distribution
+    const scoreBins = {{ score_bins|safe }};
+    const labels = Object.keys(scoreBins);
+    const data = Object.values(scoreBins);
+    const maxBucketValue = Math.max(...data, 1);
+    
+    const scoreDistributionCanvas = document.getElementById('score-distribution-chart');
+    
+    // Destroy existing chart instance on the canvas element if it exists
+    if (scoreDistributionCanvas.chart) {
+      scoreDistributionCanvas.chart.destroy();
+    }
+    
+    scoreDistributionCanvas.chart = new Chart(scoreDistributionCanvas, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Number of Scores',
+          data: data,
+          backgroundColor: 'rgba(0, 123, 255, 0.5)',
+          borderColor: 'rgba(0, 123, 255, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45,
+              callback: function(value, index) {
+                // Show every 5th label to reduce crowding
+                return index % 5 === 0 ? this.getLabelForValue(value) : '';
+              }
+            }
+          },
+          y: { 
+            beginAtZero: true,
+            max: maxBucketValue + 5,
+            title: { display: true, text: 'Frequency' } 
+          }
+        }
+      }
+    });
+
+    // Games Timeline
+    const gamesData = {{ games_by_date|safe }};
+    const dateLabels = Object.keys(gamesData).sort();
+    const gamesCounts = dateLabels.map((date, index) => ({
+      x: index,
+      y: gamesData[date]
+    }));
+    const maxGameCount = Math.max(...dateLabels.map(date => gamesData[date]), 1);
+    
+    const gamesTimelineCanvas = document.getElementById('games-timeline-chart');
+    
+    // Destroy existing chart instance on the canvas element if it exists
+    if (gamesTimelineCanvas.chart) {
+      gamesTimelineCanvas.chart.destroy();
+    }
+    
+    gamesTimelineCanvas.chart = new Chart(gamesTimelineCanvas, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Games Played',
+          data: gamesCounts,
+          backgroundColor: 'rgba(40, 167, 69, 1)',
+          borderColor: 'rgba(40, 167, 69, 1)',
+          borderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            type: 'category',
+            labels: dateLabels
+          },
+          y: { 
+            beginAtZero: true,
+            max: maxGameCount + 2,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+
+    // Player Performance Box Plot
+    const playerBoxData = {{ player_box_data|safe }};
+    const playerNames = Object.keys(playerBoxData);
+    const boxTraces = playerNames.map(name => ({
+      y: playerBoxData[name],
+      name: name,
+      type: 'box'
+    }));
+
+    const boxLayout = {
+      title: '',
+      yaxis: {
+        title: 'Score',
+        zeroline: false
+      },
+      xaxis: {
+        title: 'Player'
+      },
+      height: 500,
+      margin: { l: 50, r: 50, t: 50, b: 100 }
+    };
+
+    Plotly.newPlot('player-boxplot-chart', boxTraces, boxLayout, { responsive: true });
+  </script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "scores/base.html" %}
+{% block content %}
+  <h2>Yamb Dashboard</h2>
+
+  <!-- Top Metrics Row -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div style="font-size: 0.9rem; opacity: 0.9;">Total Games</div>
+      <div style="font-size: 2.5rem; font-weight: bold;">{{ total_games }}</div>
+      <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">{{ total_scoresheets }} scoresheets</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div style="font-size: 0.9rem; opacity: 0.9;">Average Score</div>
+      <div style="font-size: 2.5rem; font-weight: bold;">{{ avg_score }}</div>
+      <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Range: {{ low_score }} - {{ high_score }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <div style="font-size: 0.9rem; opacity: 0.9;">Total Players</div>
+      <div style="font-size: 2.5rem; font-weight: bold;">{{ total_players|default:'-' }}</div>
+      <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Active players</div>
+    </div>
+  </div>
+
+  <!-- Two Column Layout -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    
+    <!-- Left Column: Top Performers & Activity -->
+    <div>
+      <!-- Top Players -->
+      <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0;">🏆 Top Performers</h3>
+        <div>
+          {% for player in top_players %}
+          <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: bold;">{{ forloop.counter }}. {{ player.name }}</div>
+              <div style="font-size: 0.85rem; color: #666;">{{ player.games_count }} games</div>
+            </div>
+            <div style="font-size: 1.3rem; font-weight: bold; color: #007bff;">{{ player.avg_score|floatformat:1 }}</div>
+          </div>
+          {% empty %}
+          <div style="padding: 1rem; color: #999;">No data yet</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Most Consistent -->
+      <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0;">🎯 Most Consistent</h3>
+        <p style="color: #666; font-size: 0.9rem;">Lowest score variation</p>
+        <div>
+          {% for player_data in most_consistent %}
+          <div style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: bold;">{{ player_data.player.name }}</div>
+              <div style="font-size: 0.85rem; color: #666;">Std Dev: {{ player_data.std_dev|floatformat:1 }}</div>
+            </div>
+            <div style="font-size: 1.1rem; font-weight: bold; color: #28a745;">{{ player_data.avg|floatformat:1 }}</div>
+          </div>
+          {% empty %}
+          <div style="padding: 1rem; color: #999;">Need more data</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Recent Activity -->
+    <div>
+      <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0;">📅 Recent Games</h3>
+        <div>
+          {% for game in recent_games %}
+          <div style="padding: 1rem; border-bottom: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div>
+                <div style="font-weight: bold; margin-bottom: 0.3rem;">
+                  {% for scoresheet in game.yamb_scoresheets.all %}
+                    {{ scoresheet.player.name }}{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
+                </div>
+                <div style="font-size: 0.85rem; color: #666;">
+                  {{ game.created_at|date:"M d, Y" }}
+                </div>
+              </div>
+              <div style="text-align: right;">
+                {% for scoresheet in game.yamb_scoresheets.all %}
+                  <div style="font-weight: bold; font-size: 1.1rem; color: #007bff;">{{ scoresheet.final_score|default:"—" }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div style="padding: 1rem; color: #999;">No games yet</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Links to Detailed Pages -->
+  <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
+    <h3 style="margin-top: 0;">📊 View Detailed Analytics</h3>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="{% url 'scores:yamb_statistics' %}" style="padding: 0.75rem 1.5rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">→ Full Statistics</a>
+      <a href="{% url 'scores:leaderboard' %}" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">→ Leaderboard</a>
+      <a href="{% url 'scores:player_stats' %}" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">→ Player Stats</a>
+    </div>
+  </div>
+{% endblock %}

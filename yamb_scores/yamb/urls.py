@@ -8,6 +8,8 @@ urlpatterns = [
     path('new/', views.new_game, name='new_game'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('player-stats/', views.player_stats, name='player_stats'),
+    path('statistics/', views.yamb_statistics, name='yamb_statistics'),
+    path('dashboard/', views.yamb_dashboard, name='yamb_dashboard'),
     
     # Player management
     path('players/', views.player_list, name='player_list'),
