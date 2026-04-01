@@ -62,14 +62,18 @@
           <td style="padding: 0.75rem; border-bottom: 1px solid #eee; font-weight: bold;">{{ extreme.row }}</td>
           <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">
             {% if extreme.highest %}
-              <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.highest_tooltip %}help{% else %}default{% endif %};" {% if extreme.highest_tooltip %}title="Players: {{ extreme.highest_tooltip }}"{% endif %}>{{ extreme.highest }}</span>
+              <a href="{% url 'scores:edit_yamb_scoresheet' extreme.highest_game_id extreme.highest_scoresheet_id %}" style="text-decoration: none;">
+                <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.highest_tooltip %}help{% else %}pointer{% endif %};" {% if extreme.highest_tooltip %}title="Players: {{ extreme.highest_tooltip }}"{% endif %}>{{ extreme.highest }}</span>
+              </a>
             {% else %}
               —
             {% endif %}
           </td>
           <td style="padding: 0.75rem; border-bottom: 1px solid #eee;">
             {% if extreme.lowest %}
-              <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.lowest_tooltip %}help{% else %}default{% endif %};" {% if extreme.lowest_tooltip %}title="Players: {{ extreme.lowest_tooltip }}"{% endif %}>{{ extreme.lowest }}</span>
+              <a href="{% url 'scores:edit_yamb_scoresheet' extreme.lowest_game_id extreme.lowest_scoresheet_id %}" style="text-decoration: none;">
+                <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.lowest_tooltip %}help{% else %}pointer{% endif %};" {% if extreme.lowest_tooltip %}title="Players: {{ extreme.lowest_tooltip }}"{% endif %}>{{ extreme.lowest }}</span>
+              </a>
             {% else %}
               —
             {% endif %}

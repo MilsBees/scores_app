@@ -369,42 +369,62 @@ def yamb_statistics(request):
         high_value = None
         high_display = None
         high_tooltip = None
+        high_scoresheet_id = None
+        high_game_id = None
         if high_sheets:
             high_value = getattr(high_sheets[0], row_field)
             # Get all sheets with this value
             sheets_with_high = [s for s in high_sheets if getattr(s, row_field) == high_value]
             if len(sheets_with_high) == 1:
                 high_display = f"{sheets_with_high[0].player.name} ({high_value})"
+                high_scoresheet_id = sheets_with_high[0].id
+                high_game_id = sheets_with_high[0].game_id
             elif len(sheets_with_high) == 2:
                 high_display = f"{sheets_with_high[0].player.name}, {sheets_with_high[1].player.name} ({high_value})"
+                high_scoresheet_id = sheets_with_high[0].id
+                high_game_id = sheets_with_high[0].game_id
             else:
                 high_display = f"Multiple players ({high_value})"
                 high_tooltip = ", ".join([s.player.name for s in sheets_with_high])
+                high_scoresheet_id = sheets_with_high[0].id
+                high_game_id = sheets_with_high[0].game_id
         
         # Get low extremes
         low_sheets = list(scoresheets_yamb.filter(**{f'{row_field}__isnull': False}).order_by(f'{row_field}'))
         low_value = None
         low_display = None
         low_tooltip = None
+        low_scoresheet_id = None
+        low_game_id = None
         if low_sheets:
             low_value = getattr(low_sheets[0], row_field)
             # Get all sheets with this value
             sheets_with_low = [s for s in low_sheets if getattr(s, row_field) == low_value]
             if len(sheets_with_low) == 1:
                 low_display = f"{sheets_with_low[0].player.name} ({low_value})"
+                low_scoresheet_id = sheets_with_low[0].id
+                low_game_id = sheets_with_low[0].game_id
             elif len(sheets_with_low) == 2:
                 low_display = f"{sheets_with_low[0].player.name}, {sheets_with_low[1].player.name} ({low_value})"
+                low_scoresheet_id = sheets_with_low[0].id
+                low_game_id = sheets_with_low[0].game_id
             else:
                 low_display = f"Multiple players ({low_value})"
                 low_tooltip = ", ".join([s.player.name for s in sheets_with_low])
+                low_scoresheet_id = sheets_with_low[0].id
+                low_game_id = sheets_with_low[0].game_id
         
         row_name = row_field.replace('row_', '').replace('_total', '').upper()
         row_extremes.append({
             'row': row_name,
             'highest': high_display,
             'highest_tooltip': high_tooltip,
+            'highest_scoresheet_id': high_scoresheet_id,
+            'highest_game_id': high_game_id,
             'lowest': low_display,
             'lowest_tooltip': low_tooltip,
+            'lowest_scoresheet_id': low_scoresheet_id,
+            'lowest_game_id': low_game_id,
         })
     
     context = {
