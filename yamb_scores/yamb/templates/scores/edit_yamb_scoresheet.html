@@ -5,6 +5,16 @@
   
   <form method="post">
     {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+      <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        <strong>Error:</strong>
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
     <div class="card">
       <h3>Player info</h3>
       <div style="margin-bottom: 1rem;">
