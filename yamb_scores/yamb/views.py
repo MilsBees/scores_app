@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, Avg, Max, Count, Min, Q
 from django.db import models
 from django.urls import reverse
+from django.forms import inlineformset_factory
 from .models import Game, Player, Score, YambGame, YambScoresheet
-from .forms import GameForm, ScoreFormSet, YambGameForm, YambScoresheetFormSet, YambScoresheetForm, PlayerForm
+from .forms import GameForm, ScoreFormSet, YambGameForm, YambScoresheetFormSet, YambScoresheetForm, PlayerForm, ScoreForm
 
 def game_list(request):
     games = Game.objects.prefetch_related('scores__player').order_by('-played_at')[:50]
@@ -25,10 +26,27 @@ def new_game(request):
         except YambGame.DoesNotExist:
             pass
     
+    # Calculate how many extra forms we need
+    # If coming from yamb: extra = len(players) - 1 (since there's a base form)
+    # If normal new game: extra = 0 (just show the default single form)
+    extra_forms = len(initial_players) - 1 if initial_players else 0
+    
+    # Create formset class with the correct number of extra forms
+    DynamicScoreFormSet = inlineformset_factory(
+        Game,
+        Score,
+        form=ScoreForm,
+        fields=('score',),
+        extra=extra_forms,
+        can_delete=True,
+        min_num=1,
+        validate_min=True,
+    )
+    
     if request.method == 'POST':
         form = GameForm(request.POST)
         game = Game()
-        formset = ScoreFormSet(request.POST, instance=game)
+        formset = DynamicScoreFormSet(request.POST, instance=game)
         if form.is_valid() and formset.is_valid():
             game = form.save()
             formset.instance = game
@@ -36,7 +54,7 @@ def new_game(request):
             return redirect(reverse('scores:game_list'))
     else:
         form = GameForm()
-        formset = ScoreFormSet(instance=Game())
+        formset = DynamicScoreFormSet(instance=Game())
         
         # Pre-populate formset if coming from yamb
         if initial_players:
