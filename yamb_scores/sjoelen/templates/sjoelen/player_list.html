@@ -1,9 +1,9 @@
-{% extends "scores/base.html" %}
+{% extends "sjoelen/base.html" %}
 {% block content %}
   <h2>Players</h2>
   
   <div class="card" style="margin-bottom: 1.5rem;">
-    <a href="{% url 'scores:new_player' %}" class="btn-primary-action">+ Add New Player</a>
+    <a href="{% url 'sjoelen:new_player' %}" class="btn-primary-action">+ Add New Player</a>
   </div>
   
   {% if players %}
@@ -19,8 +19,8 @@
         <tr>
           <td>{{ player.name }}</td>
           <td>
-            <a href="{% url 'scores:edit_player' player.id %}" style="color: var(--primary-color); text-decoration: none; margin-right: 1rem;">Edit</a>
-            <a href="{% url 'scores:delete_player' player.id %}" style="color: #dc3545; text-decoration: none;">Delete</a>
+            <a href="{% url 'sjoelen:edit_player' player.id %}" style="color: #ffd93d; text-decoration: none; margin-right: 1rem;">Edit</a>
+            <a href="{% url 'sjoelen:delete_player' player.id %}" style="color: #dc3545; text-decoration: none;">Delete</a>
           </td>
         </tr>
         {% endfor %}
@@ -28,7 +28,7 @@
     </table>
   {% else %}
     <div class="card">
-      <p>No players yet. <a href="{% url 'scores:new_player' %}">Create one now</a>.</p>
+      <p>No players yet. <a href="{% url 'sjoelen:new_player' %}">Create one now</a>.</p>
     </div>
   {% endif %}
 {% endblock %}

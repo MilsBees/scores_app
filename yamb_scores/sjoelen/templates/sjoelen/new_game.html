@@ -1,0 +1,155 @@
+{% extends "sjoelen/base.html" %}
+{% block content %}
+  <h2>New Game</h2>
+  <form method="post" id="game-form">
+    {% csrf_token %}
+    
+    {% if formset.non_form_errors %}
+    <div class="error-message">
+      <strong>Error:</strong>
+      {{ formset.non_form_errors }}
+    </div>
+    {% endif %}
+    
+    {% for form in formset.forms %}
+      {% if form.errors %}
+        <div class="error-message">
+          <strong>Error in row {{ forloop.counter }}:</strong>
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    
+    <h3>Player Scores</h3>
+    <div class="card">
+      {{ formset.management_form }}
+      <table id="scores-table" style="font-size: 0.9rem; width: 100%;">
+        <thead>
+          <tr><th style="text-align: left; padding: 0.5rem;">Player</th><th style="padding: 0.5rem;">R1</th><th style="padding: 0.5rem;">R2</th><th style="padding: 0.5rem;">R3</th><th style="padding: 0.5rem;">Total</th><th style="padding: 0.5rem;">Remove</th></tr>
+        </thead>
+        <tbody id="formset-tbody">
+          {% for form in formset.forms %}
+          <tr class="formset-row" data-form-index="{{ forloop.counter0 }}" style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 0.5rem;">
+              {{ form.player }}
+              {% for err in form.player.errors %}<div class="field-error">{{ err }}</div>{% endfor %}
+            </td>
+            <td style="padding: 0.5rem;">
+              {{ form.round_1 }}
+            </td>
+            <td style="padding: 0.5rem;">
+              {{ form.round_2 }}
+            </td>
+            <td style="padding: 0.5rem;">
+              {{ form.round_3 }}
+            </td>
+            <td class="total-cell" style="padding: 0.5rem; text-align: center; font-weight: bold;">0</td>
+            <td style="padding: 0.5rem; text-align: center;">
+              <input type="hidden" name="scores-{{ forloop.counter0 }}-DELETE">
+              {% if forloop.counter > 1 %}
+                <button type="button" class="delete-row btn-icon">×</button>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="button" id="add-row" class="btn-primary-action" style="margin-top: 1rem;">+ Add player</button>
+    </div>
+    <button type="submit">Save game</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('game-form');
+    const formsetBody = document.getElementById('formset-tbody');
+    const totalFormsInput = document.getElementById('id_scores-TOTAL_FORMS');
+    const addRowBtn = document.getElementById('add-row');
+
+    // Calculate and update total for a row
+    function updateRowTotal(row) {
+      const r1 = parseInt(row.querySelector('input[name$="-round_1"]').value) || 0;
+      const r2 = parseInt(row.querySelector('input[name$="-round_2"]').value) || 0;
+      const r3 = parseInt(row.querySelector('input[name$="-round_3"]').value) || 0;
+      const totalCell = row.querySelector('.total-cell');
+      totalCell.textContent = r1 + r2 + r3;
+    }
+
+    // Add new row
+    addRowBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const formCount = parseInt(totalFormsInput.value);
+      const newRow = document.createElement('tr');
+      newRow.className = 'formset-row';
+      newRow.setAttribute('data-form-index', formCount);
+      
+      // Get player options from first dropdown
+      const firstPlayerSelect = document.querySelector('select[name*="-player"]');
+      const playerOptions = firstPlayerSelect ? firstPlayerSelect.innerHTML : '<option value="">-- Select a player --</option>';
+      
+      const emptyForm = `
+        <td style="padding: 0.5rem;"><select name="scores-${formCount}-player" style="width: 100%; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">${playerOptions}</select></td>
+        <td style="padding: 0.5rem;"><input type="text" name="scores-${formCount}-round_1" class="score-input" inputmode="numeric" style="width: 100%; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;" placeholder="0"></td>
+        <td style="padding: 0.5rem;"><input type="text" name="scores-${formCount}-round_2" class="score-input" inputmode="numeric" style="width: 100%; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;" placeholder="0"></td>
+        <td style="padding: 0.5rem;"><input type="text" name="scores-${formCount}-round_3" class="score-input" inputmode="numeric" style="width: 100%; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;" placeholder="0"></td>
+        <td class="total-cell" style="padding: 0.5rem; text-align: center; font-weight: bold;">0</td>
+        <td style="padding: 0.5rem; text-align: center;">
+          <input type="hidden" name="scores-${formCount}-DELETE">
+          <button type="button" class="delete-row btn-icon">×</button>
+        </td>
+      `;
+      newRow.innerHTML = emptyForm;
+      formsetBody.appendChild(newRow);
+      
+      // Attach event listeners to new inputs
+      const newInputs = newRow.querySelectorAll('input[type="text"]');
+      newInputs.forEach(input => {
+        input.addEventListener('input', () => updateRowTotal(newRow));
+      });
+      
+      totalFormsInput.value = formCount + 1;
+      
+      // Attach delete handler to new row
+      newRow.querySelector('.delete-row').addEventListener('click', deleteRow);
+    });
+
+    // Delete row
+    function deleteRow(e) {
+      e.preventDefault();
+      const row = e.target.closest('tr');
+      const deleteInput = row.querySelector('input[name$="-DELETE"]');
+      
+      if (deleteInput) {
+        deleteInput.value = 'on';
+        row.style.display = 'none';
+      } else {
+        row.remove();
+        updateFormCount();
+      }
+    }
+
+    // Update total form count
+    function updateFormCount() {
+      const rows = formsetBody.querySelectorAll('.formset-row:not([style*="display: none"])');
+      totalFormsInput.value = rows.length;
+    }
+
+    // Attach event listeners to existing inputs and buttons
+    document.querySelectorAll('.formset-row').forEach(row => {
+      const inputs = row.querySelectorAll('input[type="text"]');
+      inputs.forEach(input => {
+        input.addEventListener('input', () => updateRowTotal(row));
+      });
+      
+      const deleteBtn = row.querySelector('.delete-row');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', deleteRow);
+      }
+    });
+  </script>
+{% endblock %}

@@ -1,6 +1,6 @@
-{% extends "squash/base.html" %}
+{% extends "sjoelen/base.html" %}
 {% block content %}
-  <h2>Edit Player: {{ player.name }}</h2>
+  <h2>New Player</h2>
   
   {% if form.non_field_errors %}
     <div class="error-message">
@@ -28,6 +28,6 @@
       </div>
     {% endfor %}
     
-    <button type="submit">Save Changes</button>
+    <button type="submit">Create Player</button>
   </form>
 {% endblock %}

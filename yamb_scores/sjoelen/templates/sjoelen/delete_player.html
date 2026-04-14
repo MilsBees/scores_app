@@ -1,4 +1,4 @@
-{% extends "squash/base.html" %}
+{% extends "sjoelen/base.html" %}
 {% block content %}
   <h2>Delete Player</h2>
   
@@ -11,7 +11,7 @@
     <p>Are you sure you want to delete <strong>{{ player.name }}</strong>?</p>
     <div style="display: flex; gap: 1rem;">
       <button type="submit" class="btn-danger">Yes, Delete</button>
-      <a href="{% url 'squash:player_list' %}" class="btn-secondary">Cancel</a>
+      <a href="{% url 'sjoelen:player_list' %}" class="btn-secondary">Cancel</a>
     </div>
   </form>
 {% endblock %}

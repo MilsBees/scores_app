@@ -101,9 +101,9 @@
   <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
     <h3 style="margin-top: 0;">📊 View Detailed Analytics</h3>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-      <a href="{% url 'scores:yamb_statistics' %}" style="padding: 0.75rem 1.5rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">→ Full Statistics</a>
-      <a href="{% url 'scores:leaderboard' %}" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">→ Leaderboard</a>
-      <a href="{% url 'scores:player_stats' %}" style="padding: 0.75rem 1.5rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">→ Player Stats</a>
+      <a href="{% url 'scores:yamb_statistics' %}" class="btn-primary-action" style="padding: 0.75rem 1.5rem;">→ Full Statistics</a>
+      <a href="{% url 'scores:leaderboard' %}" class="btn-secondary" style="padding: 0.75rem 1.5rem;">→ Leaderboard</a>
+      <a href="{% url 'scores:player_stats' %}" class="btn-secondary" style="padding: 0.75rem 1.5rem;">→ Player Stats</a>
     </div>
   </div>
 {% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block page_title %}Sjoelen{% endblock %}
+
+{% block title %}Sjoelen{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary-color: #ffd93d;
+    --primary-hover: #ffcc1a;
+  }
+</style>
+{% endblock %}
+
+{% block nav_main %}
+  <a href="{% url 'sjoelen:new_game' %}">New game</a>
+  <a href="{% url 'sjoelen:game_list' %}">Games</a>
+  <a href="{% url 'sjoelen:player_list' %}">Players</a>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "sjoelen/base.html" %}
+{% block content %}
+  <h2>Games</h2>
+  
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <a href="{% url 'sjoelen:new_game' %}" class="btn-primary-action">+ New Game</a>
+  </div>
+  
+  {% if games %}
+    <div>
+      {% for game in games %}
+        <div class="card">
+          <p><strong>Game #{{ game.id }}</strong> - {{ game.played_at|date:"M d, Y H:i" }}</p>
+          <table style="width: 100%; margin-top: 0.5rem;">
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>R1</th>
+                <th>R2</th>
+                <th>R3</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for score in game.scores.all|dictsort:"final_score" reversed %}
+              <tr>
+                <td>{{ score.player.name }}</td>
+                <td>{{ score.round_1|default:"-" }}</td>
+                <td>{{ score.round_2|default:"-" }}</td>
+                <td>{{ score.round_3|default:"-" }}</td>
+                <td><strong>{{ score.final_score }}</strong></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <p>No games yet. <a href="{% url 'sjoelen:new_game' %}">Create one now</a>.</p>
+    </div>
+  {% endif %}
+{% endblock %}

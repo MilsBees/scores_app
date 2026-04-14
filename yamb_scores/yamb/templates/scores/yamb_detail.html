@@ -123,12 +123,12 @@
     </div>
     
     <div style="margin-top: 1rem; margin-bottom: 2rem;">
-      <a href="{% url 'scores:edit_yamb_scoresheet' yamb_game.id scoresheet.id %}" style="padding: 0.5rem 1rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-right: 0.5rem;">Edit</a>
-      <a href="{% url 'scores:delete_yamb_scoresheet' yamb_game.id scoresheet.id %}" style="padding: 0.5rem 1rem; background: #dc3545; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Delete</a>
+      <a href="{% url 'scores:edit_yamb_scoresheet' yamb_game.id scoresheet.id %}" class="btn-primary-action" style="margin-right: 0.5rem;">Edit</a>
+      <a href="{% url 'scores:delete_yamb_scoresheet' yamb_game.id scoresheet.id %}" class="btn-danger">Delete</a>
     </div>
   {% endfor %}
   
-  <p><a href="{% url 'scores:yamb_list' %}" style="padding: 0.5rem 1rem; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 1rem;">Back to scoresheets</a></p>
+  <p><a href="{% url 'scores:yamb_list' %}" class="btn-secondary" style="margin-top: 1rem;">Back to scoresheets</a></p>
 
   <style>
     .yamb-scoresheet {

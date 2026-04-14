@@ -5,9 +5,9 @@
   <div class="card">
     <h3>Date Range</h3>
     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-      <a href="?range=30" style="padding: 0.5rem 1rem; background: {% if date_range == '30' %}#3ab3aa{% else %}#4ecdc4{% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Last 30 Days</a>
-      <a href="?range=60" style="padding: 0.5rem 1rem; background: {% if date_range == '60' %}#3ab3aa{% else %}#4ecdc4{% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Last 60 Days</a>
-      <a href="?range=ytd" style="padding: 0.5rem 1rem; background: {% if date_range == 'ytd' %}#3ab3aa{% else %}#4ecdc4{% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Year to Date</a>
+      <a href="?range=30" style="padding: 0.5rem 1rem; background: {% if date_range == '30' %}var(--primary-hover){% else %}var(--primary-color){% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Last 30 Days</a>
+      <a href="?range=60" style="padding: 0.5rem 1rem; background: {% if date_range == '60' %}var(--primary-hover){% else %}var(--primary-color){% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Last 60 Days</a>
+      <a href="?range=ytd" style="padding: 0.5rem 1rem; background: {% if date_range == 'ytd' %}var(--primary-hover){% else %}var(--primary-color){% endif %}; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">Year to Date</a>
     </div>
   </div>
 
@@ -37,7 +37,7 @@
   <script>
     // Color palette for players (consistent across all charts)
     const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA502', '#2ECC71',
+      '#FF6B6B', '#6c63ff', '#45B7D1', '#FFA502', '#8B7FF7',
       '#3498DB', '#E74C3C', '#9B59B6', '#1ABC9C', '#D35400',
       '#34495E', '#16A085', '#C0392B', '#8E44AD', '#2980B9'
     ];

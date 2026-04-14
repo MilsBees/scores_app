@@ -57,7 +57,8 @@
       font-size: 0.95rem;
     }
     .tile.yamb { border-top: 4px solid #ff6b6b; }
-    .tile.squash { border-top: 4px solid #4ecdc4; }
+    .tile.squash { border-top: 4px solid #6c63ff; }
+    .tile.sjoelen { border-top: 4px solid #ffd93d; }
     
     @media (max-width: 600px) {
       h1 { font-size: 1.8rem; }
@@ -78,6 +79,10 @@
       <a href="{% url 'squash:index' %}" class="tile squash">
         <h2>Squash</h2>
         <p>Track your squash matches</p>
+      <a href="{% url 'sjoelen:index' %}" class="tile sjoelen">
+        <h2>Sjoelen</h2>
+        <p>Track your Sjoelen game scores</p>
+      </a>
       </a>
     </div>
   </div>

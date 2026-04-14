@@ -6,14 +6,18 @@
   <title>{% block page_title %}Scores App{% endblock %}</title>
   <style>
     * { box-sizing: border-box; }
+    :root {
+      --primary-color: #666;
+      --primary-hover: #555;
+    }
     body { font-family: system-ui, Arial; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     h1 { font-size: 1.75rem; margin: 0 0 1rem 0; }
     h2 { font-size: 1.5rem; margin: 1.5rem 0 1rem 0; }
     h3 { font-size: 1.25rem; margin: 1.25rem 0 0.75rem 0; }
     header { margin-bottom: 1rem; }
     nav { margin-bottom: 2rem; }
-    nav a { margin-right: 1rem; display: inline-block; margin-bottom: 0.5rem; padding: 0.5rem 1rem; background: #4ecdc4; color: white; text-decoration: none; border-radius: 4px; }
-    nav a:hover { background: #3ab3aa; }
+    nav a { margin-right: 1rem; display: inline-block; margin-bottom: 0.5rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; text-decoration: none; border-radius: 4px; }
+    nav a:hover { background: var(--primary-hover); }
     table { border-collapse: collapse; width: 100%; }
     th, td { padding: 0.5rem; border-bottom: 1px solid #ddd; text-align: left; }
     .card { padding: 1rem; border: 1px solid #eee; border-radius: 6px; background: #fafafa; margin-bottom: 1rem; }
@@ -47,7 +51,7 @@
     }
     button[type="submit"] {
       padding: 0.5rem 1rem;
-      background: #4ecdc4;
+      background: var(--primary-color);
       color: white;
       border: none;
       border-radius: 4px;
@@ -55,13 +59,70 @@
       font-size: 1rem;
     }
     button[type="submit"]:hover {
-      background: #3ab3aa;
+      background: var(--primary-hover);
     }
     button.btn-success {
       background: #28a745;
     }
     button.btn-success:hover {
       background: #218838;
+    }
+    .btn-primary-action {
+      padding: 0.5rem 1rem;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary-action:hover {
+      background: var(--primary-hover);
+    }
+    .btn-danger {
+      padding: 0.5rem 1rem;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+    }
+    .btn-secondary {
+      padding: 0.5rem 1rem;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    .btn-icon {
+      padding: 0;
+      line-height: 1;
+      width: 28px;
+      height: 28px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-icon:hover {
+      background: #c82333;
     }
     table th a,
     table th a:visited,
@@ -84,7 +145,7 @@
       opacity: 0.75;
     }
     footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; font-size: 0.9rem; color: #666; }
-    footer a { color: #4ecdc4; text-decoration: none; }
+    footer a { color: var(--primary-color); text-decoration: none; }
     
     @media (max-width: 600px) {
       body { margin: 1rem auto; padding: 0 0.5rem; }

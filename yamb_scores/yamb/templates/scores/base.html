@@ -4,6 +4,15 @@
 
 {% block title %}Yamb{% endblock %}
 
+{% block extra_css %}
+<style>
+  :root {
+    --primary-color: #ff6b6b;
+    --primary-hover: #ee5a52;
+  }
+</style>
+{% endblock %}
+
 {% block nav_main %}
   <a href="{% url 'scores:game_list' %}">Recent games</a>
   <a href="{% url 'scores:new_game' %}">New game</a>
