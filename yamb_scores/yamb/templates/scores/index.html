@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sjoelen</title>
+  <title>Yamb</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: system-ui, Arial; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     h1 { font-size: 1.75rem; margin: 0 0 1rem 0; }
     h2 { font-size: 1.5rem; margin: 1.5rem 0 1rem 0; }
     nav { margin-bottom: 2rem; }
-    nav a { margin-right: 1rem; display: inline-block; margin-bottom: 0.5rem; padding: 0.5rem 1rem; background: #ffd93d; color: white; text-decoration: none; border-radius: 4px; }
-    nav a:hover { background: #ffcc1a; }
+    nav a { margin-right: 1rem; display: inline-block; margin-bottom: 0.5rem; padding: 0.5rem 1rem; background: #ff6b6b; color: white; text-decoration: none; border-radius: 4px; }
+    nav a:hover { background: #ee5a52; }
     table { border-collapse: collapse; width: 100%; }
     th, td { padding: 0.5rem; border-bottom: 1px solid #ddd; text-align: left; }
     .card { padding: 1rem; border: 1px solid #eee; border-radius: 6px; background: #fafafa; margin-bottom: 1rem; }
@@ -29,21 +29,22 @@
   <nav>
     <a href="{% url 'home:home' %}">← Back to home</a>
   </nav>
-  <h1>Sjoelen</h1>
+  <h1>Yamb</h1>
   <nav>
-    <a href="{% url 'sjoelen:new_game' %}">New game</a>
-    <a href="{% url 'sjoelen:game_list' %}">Recent games</a>
-    <a href="{% url 'sjoelen:leaderboard' %}">Leaderboard</a>
-    <a href="{% url 'sjoelen:statistics' %}">General stats</a>
-    <a href="{% url 'sjoelen:player_stats' %}">Player stats</a>
-    <a href="{% url 'sjoelen:player_list' %}">Players</a>
+    <a href="{% url 'scores:new_game' %}">New game</a>
+    <a href="{% url 'scores:yamb_list' %}">Scoresheet</a>
+    <a href="{% url 'scores:game_list' %}">Recent games</a>
+    <a href="{% url 'scores:leaderboard' %}">Leaderboard</a>
+    <a href="{% url 'scores:yamb_statistics' %}">General stats</a>
+    <a href="{% url 'scores:player_stats' %}">Player stats</a>
+    <a href="{% url 'scores:player_list' %}">Players</a>
   </nav>
   <main>
     <div class="card">
-      <p>Welcome to Sjoelen Scores! Use the tabs above to get started.</p>
+      <p>Welcome to Yamb Scores! Use the tabs above to get started.</p>
     </div>
     <footer style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; font-size: 0.9rem; color: #666;">
-      <a href="/admin/" style="color: #ffd93d; text-decoration: none;">Admin</a>
+      <a href="/admin/" style="color: #ff6b6b; text-decoration: none;">Admin</a>
     </footer>
   </main>
 </body>

@@ -14,9 +14,9 @@
 {% endblock %}
 
 {% block nav_main %}
-  <a href="{% url 'scores:game_list' %}">Recent games</a>
   <a href="{% url 'scores:new_game' %}">New game</a>
   <a href="{% url 'scores:yamb_list' %}">Scoresheet</a>
+  <a href="{% url 'scores:game_list' %}">Recent games</a>
   <a href="{% url 'scores:leaderboard' %}">Leaderboard</a>
   <a href="{% url 'scores:yamb_statistics' %}">General stats</a>
   <a href="{% url 'scores:player_stats' %}">Player stats</a>

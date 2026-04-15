@@ -1,4 +1,4 @@
-{% extends "scores/base.html" %}
+{% extends "sjoelen/base.html" %}
 {% block content %}
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h2 style="margin: 0;">Player Leaderboard</h2>
@@ -51,7 +51,7 @@
       {% for p in players %}
       <tr>
         <td>{{ forloop.counter }}</td>
-        <td><a href="{% url 'scores:player_stats' %}?player={{ p.id }}">{{ p.name }}</a></td>
+        <td>{{ p.name }}</td>
         <td>{{ p.best_score|default:"—" }}</td>
         <td>
           {% if p.avg_score %}{{ p.avg_score|floatformat:1 }}{% else %}—{% endif %}
@@ -77,7 +77,7 @@
       <tr>
         <td>{{ forloop.counter }}</td>
         <td>{{ score.player.name }}</td>
-        <td>{{ score.score }}</td>
+        <td>{{ score.final_score }}</td>
       </tr>
       {% empty %}
       <tr><td colspan="3">No scores yet.</td></tr>
@@ -95,7 +95,7 @@
       <tr>
         <td>{{ forloop.counter }}</td>
         <td>{{ score.player.name }}</td>
-        <td>{{ score.score }}</td>
+        <td>{{ score.final_score }}</td>
       </tr>
       {% empty %}
       <tr><td colspan="3">No scores yet.</td></tr>

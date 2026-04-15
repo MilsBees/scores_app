@@ -140,11 +140,13 @@
     // Games Timeline
     const gamesData = {{ games_by_date|safe }};
     const dateLabels = Object.keys(gamesData).sort();
-    const gamesCounts = dateLabels.map((date, index) => ({
-      x: index,
-      y: gamesData[date]
-    }));
-    const maxGameCount = Math.max(...dateLabels.map(date => gamesData[date]), 1);
+    const gamesCounts = dateLabels
+      .map((date, index) => ({
+        x: index,
+        y: gamesData[date]
+      }))
+      .filter(point => point.y > 0);  // Only show points where games were played
+    const maxGameCount = gamesCounts.length > 0 ? Math.max(...gamesCounts.map(p => p.y)) : 1;
     
     const gamesTimelineCanvas = document.getElementById('games-timeline-chart');
     
@@ -162,8 +164,9 @@
           backgroundColor: 'rgba(40, 167, 69, 1)',
           borderColor: 'rgba(40, 167, 69, 1)',
           borderWidth: 2,
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          showLine: false
         }]
       },
       options: {
@@ -172,18 +175,46 @@
         plugins: {
           legend: {
             display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const dataIndex = context.dataIndex;
+                const date = dateLabels[dataIndex];
+                const count = gamesData[date];
+                return date + ': ' + count + ' game' + (count !== 1 ? 's' : '');
+              }
+            }
           }
         },
         scales: {
           x: {
-            type: 'category',
-            labels: dateLabels
+            type: 'linear',
+            position: 'bottom',
+            min: 0,
+            max: dateLabels.length - 1,
+            ticks: {
+              callback: function(value) {
+                if (value % 30 === 0) {  // Show label every ~30 days
+                  return dateLabels[value];
+                }
+                return '';
+              }
+            },
+            title: {
+              display: true,
+              text: 'Date (2026)'
+            }
           },
           y: { 
             beginAtZero: true,
-            max: maxGameCount + 2,
+            max: maxGameCount + 1,
             ticks: {
               stepSize: 1
+            },
+            title: {
+              display: true,
+              text: 'Games Played'
             }
           }
         }

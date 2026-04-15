@@ -15,6 +15,9 @@
 
 {% block nav_main %}
   <a href="{% url 'sjoelen:new_game' %}">New game</a>
-  <a href="{% url 'sjoelen:game_list' %}">Games</a>
+  <a href="{% url 'sjoelen:game_list' %}">Recent games</a>
+  <a href="{% url 'sjoelen:leaderboard' %}">Leaderboard</a>
+  <a href="{% url 'sjoelen:statistics' %}">General stats</a>
+  <a href="{% url 'sjoelen:player_stats' %}">Player stats</a>
   <a href="{% url 'sjoelen:player_list' %}">Players</a>
 {% endblock %}

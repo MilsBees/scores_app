@@ -3,8 +3,13 @@ from django.db.models import Sum, Avg, Max, Count, Min, Q
 from django.db import models
 from django.urls import reverse
 from django.forms import inlineformset_factory
+from datetime import date, timedelta
+from statistics import median
 from .models import Game, Player, Score, YambGame, YambScoresheet
 from .forms import GameForm, ScoreFormSet, YambGameForm, YambScoresheetFormSet, YambScoresheetForm, PlayerForm, ScoreForm
+
+def index(request):
+    return render(request, 'scores/index.html')
 
 def game_list(request):
     games = Game.objects.prefetch_related('scores__player').order_by('-played_at')[:50]
@@ -70,7 +75,7 @@ def leaderboard(request):
     direction = request.GET.get('dir', 'desc')
     show_all = request.GET.get('show_all', 'false') == 'true'
     
-    if sort_by not in {'best', 'avg', 'games'}:
+    if sort_by not in {'best', 'avg', 'games', 'median'}:
         sort_by = 'avg'
     if direction not in {'asc', 'desc'}:
         direction = 'desc'
@@ -86,15 +91,25 @@ def leaderboard(request):
     if not show_all:
         players = players.filter(games_played__gte=5)
     
-    prefix = '-' if direction == 'desc' else ''
-
+    # Calculate median for each player and add to the queryset
+    player_list = []
+    for player in players:
+        scores = list(player.scores.values_list('score', flat=True))
+        if scores:
+            player.median_score = median(scores)
+        else:
+            player.median_score = None
+        player_list.append(player)
+    
     # Sort based on query parameter
     if sort_by == 'best':
-        players = players.order_by(f'{prefix}best_score')
+        player_list.sort(key=lambda p: p.best_score if p.best_score else 0, reverse=(direction == 'desc'))
     elif sort_by == 'games':
-        players = players.order_by(f'{prefix}games_played')
+        player_list.sort(key=lambda p: p.games_played, reverse=(direction == 'desc'))
+    elif sort_by == 'median':
+        player_list.sort(key=lambda p: p.median_score if p.median_score else 0, reverse=(direction == 'desc'))
     else:  # default to avg
-        players = players.order_by(f'{prefix}avg_score')
+        player_list.sort(key=lambda p: p.avg_score if p.avg_score else 0, reverse=(direction == 'desc'))
     
     # Get top 10 highest individual scores
     top_scores = Score.objects.select_related('player').order_by('-score')[:10]
@@ -106,7 +121,7 @@ def leaderboard(request):
     show_all_param = '&show_all=true' if show_all else ''
     
     context = {
-        'players': players,
+        'players': player_list,
         'top_scores': top_scores,
         'low_scores': low_scores,
         'sort_by': sort_by,
@@ -115,6 +130,7 @@ def leaderboard(request):
         'sort_links': {
             'best': f"sort=best&dir={'asc' if (sort_by == 'best' and direction == 'desc') else 'desc'}{show_all_param}",
             'avg': f"sort=avg&dir={'asc' if (sort_by == 'avg' and direction == 'desc') else 'desc'}{show_all_param}",
+            'median': f"sort=median&dir={'asc' if (sort_by == 'median' and direction == 'desc') else 'desc'}{show_all_param}",
             'games': f"sort=games&dir={'asc' if (sort_by == 'games' and direction == 'desc') else 'desc'}{show_all_param}",
         },
         'toggle_link': f"?sort={sort_by}&dir={direction}&show_all={'false' if show_all else 'true'}",
@@ -368,12 +384,23 @@ def yamb_statistics(request):
         # Store scores for box plot
         player_box_data[player.name] = sorted(player_scores)
     
-    # Games over time - count scores by date
+    # Games over time - count scores by date for the entire year 2026
     scores_all = Score.objects.all().select_related('game')
-    games_by_date = {}
+    games_by_date_dict = {}
     for score in scores_all:
         date_key = score.game.played_at.strftime('%Y-%m-%d')
-        games_by_date[date_key] = games_by_date.get(date_key, 0) + 1
+        games_by_date_dict[date_key] = games_by_date_dict.get(date_key, 0) + 1
+    
+    # Generate full year 2026 with all dates (including zeros)
+    start_date = date(2026, 1, 1)
+    end_date = date(2026, 12, 31)
+    current_date = start_date
+    games_by_date = {}
+    
+    while current_date <= end_date:
+        date_key = current_date.strftime('%Y-%m-%d')
+        games_by_date[date_key] = games_by_date_dict.get(date_key, 0)
+        current_date += timedelta(days=1)
     
     # Row extremes - based on Yamb scoresheets (highest/lowest per row)
     scoresheets_yamb = YambScoresheet.objects.filter(final_score__isnull=False)
