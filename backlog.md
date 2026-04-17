@@ -1,41 +1,17 @@
 # Application Backlog
 
-Here is the updated list of features and ideas.
+## Backlog Items
 
-## Yamb App
+### 1. Histograms for different set types in Squash App
+- [ ] Create separate player performance summary histograms for 11-point and 21-point sets
+- [ ] Display win percentages (Match Win %, Set Win %, Points Win %) split by set type
 
-### To-Do 📋
--   [ ] Submit a game directly from the scoresheet.
--   [ ] Add a general stats page.
-    - [ ] Score distribution histogram (overall and per player)
-    - [ ] Standard deviation per player (box plot visualization)
-    - [ ] Games over time chart (games per day distribution)
-    - [ ] Highest and lowest row scores with game context (final score)
+### 2. Games Over Time graphs (YTD for all three apps)
+- [ ] Update Yamb games over time to show Year-to-Date (YTD) instead of full year
+- [ ] Update Sjoelen games over time to show YTD
+- [ ] Update Squash matches over time to show YTD
 
-### Done ✅
--   [x] Set the default number of players for a new game to 2 instead of 3.
--   [x] Add form validation with clear error messages.
--   [x] Add case-insensitive duplicate player protection (e.g., on name submission).
--   [x] Allow adding multiple scoresheets that combine into a single game.
--   [x] Implement automatic score calculation in the scoresheet table.
--   [x] Make player names clickable to navigate to their stats page.
--   [x] Create a new "Player Statistics" tab.
-
-## Squash App
-
-### To-Do 📋
--   [ ] Improve the graphs so they are more readable.
-
-### Done ✅
--   [x] Add an in-depth Analysis tab with performance graphs over time.
--   [x] Add a Players tab to manage players and use dropdowns on match/session pages.
--   [x] Add a Squash admin page (Django admin) for managing matches/players.
--   [x] Add sortable columns to the leaderboard page.
--   [x] Add sortable columns to the Head-to-Head (H2H) page.
--   [x] Make the leaderboard relative: rank by % of points won (not total points), so frequency of play matters less.
--   [x] Add form validation with clear error messages.
-
-## Ideas for Future Apps
-
--   [ ] Sjoelen tracker.
--   [ ] General board game tracker.
+### 3. Split Extremes table for set types in Squash App
+- [ ] Create separate Match Extremes tables for 11-point sets
+- [ ] Create separate Match Extremes tables for 21-point sets
+- [ ] Show point differentials in single sets for each set type

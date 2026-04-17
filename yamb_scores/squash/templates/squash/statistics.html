@@ -1,0 +1,318 @@
+{% extends "squash/base.html" %}
+{% load static %}
+{% block content %}
+  <h2>Squash Statistics</h2>
+
+  <!-- Key Metrics -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #6c63ff;">
+      <div style="font-size: 0.9rem; color: #666;">Total Matches</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ total_matches }}</div>
+    </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #6f42c1;">
+      <div style="font-size: 0.9rem; color: #666;">Unique Players</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ unique_players_count }}</div>
+    </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #17a2b8;">
+      <div style="font-size: 0.9rem; color: #666;">11-point sets</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ sets_11_point }}</div>
+    </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #ffc107;">
+      <div style="font-size: 0.9rem; color: #666;">21-point sets</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ sets_21_point }}</div>
+    </div>
+  </div>
+
+  <!-- Player Performance Summary -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Player Performance Summary</h3>
+    <div style="position: relative; width: 100%; height: 400px; overflow: hidden;">
+      <canvas id="player-performance-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Matches Over Time -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Matches Over Time</h3>
+    <div style="position: relative; width: 100%; height: 300px; overflow: hidden;">
+      <canvas id="matches-timeline-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Player Statistics with Box Plots -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Player Performance - 11-point Sets</h3>
+    <div id="player-boxplot-11-chart" style="width: 100%;"></div>
+  </div>
+
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Player Performance - 21-point Sets</h3>
+    <div id="player-boxplot-21-chart" style="width: 100%;"></div>
+  </div>
+
+  <!-- Match Extremes -->
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Match Extremes</h3>
+    {% if match_extremes %}
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+          <th style="padding: 0.75rem; text-align: left; border-right: 1px solid #ddd;">Category</th>
+          <th style="padding: 0.75rem; text-align: left; border-right: 1px solid #ddd;">Largest</th>
+          <th style="padding: 0.75rem; text-align: left;">Smallest</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for extreme in match_extremes %}
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="padding: 0.75rem; border-right: 1px solid #ddd; font-weight: bold;">{{ extreme.type }}</td>
+          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">
+            {% if extreme.largest_display %}
+              <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.largest_tooltip %}help{% else %}pointer{% endif %};" {% if extreme.largest_tooltip %}title="{{ extreme.largest_tooltip }}"{% endif %}>{{ extreme.largest_display }}</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td style="padding: 0.75rem;">
+            {% if extreme.smallest_display %}
+              <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: {% if extreme.smallest_tooltip %}help{% else %}pointer{% endif %};" {% if extreme.smallest_tooltip %}title="{{ extreme.smallest_tooltip }}"{% endif %}>{{ extreme.smallest_display }}</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color: #999;">No matches recorded yet.</p>
+    {% endif %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script>
+    // Player Performance Summary - Match/Set/Points Win Percentages
+    const playerPerformanceData = {{ player_performance_data|safe }};
+    const playerNames = Object.keys(playerPerformanceData).sort();
+    
+    const matchWinPctData = playerNames.map(name => playerPerformanceData[name].match_win_pct);
+    const setWinPctData = playerNames.map(name => playerPerformanceData[name].set_win_pct);
+    const pointsWinPctData = playerNames.map(name => playerPerformanceData[name].points_win_pct);
+    
+    const playerPerformanceCanvas = document.getElementById('player-performance-chart');
+    
+    let playerPerformanceChart = null;
+    if (playerPerformanceCanvas) {
+      if (window.playerPerformanceChartInstance) {
+        window.playerPerformanceChartInstance.destroy();
+      }
+
+      playerPerformanceChart = new Chart(playerPerformanceCanvas, {
+        type: 'bar',
+        data: {
+          labels: playerNames,
+          datasets: [
+            {
+              label: 'Match Win %',
+              data: matchWinPctData,
+              backgroundColor: '#6c63ff',
+              borderColor: '#5a52cc',
+              borderWidth: 1,
+            },
+            {
+              label: 'Set Win %',
+              data: setWinPctData,
+              backgroundColor: '#45B7D1',
+              borderColor: '#2E8FA3',
+              borderWidth: 1,
+            },
+            {
+              label: 'Points Win %',
+              data: pointsWinPctData,
+              backgroundColor: '#FFA502',
+              borderColor: '#D68400',
+              borderWidth: 1,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              },
+              title: {
+                display: true,
+                text: 'Win Percentage',
+              },
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Player',
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+            },
+          },
+        },
+      });
+
+      window.playerPerformanceChartInstance = playerPerformanceChart;
+    }
+
+    // Matches Over Time
+    const matchesByDate = {{ matches_by_date|safe }};
+    const dateLabels = Object.keys(matchesByDate).sort();
+    const scatterData = dateLabels
+      .map((date, index) => ({
+        x: index,
+        y: matchesByDate[date]
+      }))
+      .filter(point => point.y > 0);  // Only show points where matches were played
+    const maxMatchCount = scatterData.length > 0 ? Math.max(...scatterData.map(p => p.y)) : 1;
+    
+    const matchesTimelineCanvas = document.getElementById('matches-timeline-chart');
+    let matchesTimelineChart = null;
+    if (matchesTimelineCanvas) {
+      if (window.matchesTimelineChartInstance) {
+        window.matchesTimelineChartInstance.destroy();
+      }
+
+      matchesTimelineChart = new Chart(matchesTimelineCanvas, {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: 'Matches Played',
+            data: scatterData,
+            backgroundColor: 'rgba(108, 99, 255, 1)',
+            borderColor: 'rgba(90, 82, 204, 1)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            showLine: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const dataIndex = context.dataIndex;
+                  const date = dateLabels[dataIndex];
+                  const count = matchesByDate[date];
+                  return date + ': ' + count + ' match' + (count !== 1 ? 'es' : '');
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              position: 'bottom',
+              min: 0,
+              max: dateLabels.length - 1,
+              ticks: {
+                callback: function(value) {
+                  if (value % 30 === 0) {  // Show label every ~30 days
+                    return dateLabels[value];
+                  }
+                  return '';
+                }
+              },
+              title: {
+                display: true,
+                text: 'Date (2026)'
+              }
+            },
+            y: { 
+              beginAtZero: true,
+              max: maxMatchCount + 1,
+              ticks: {
+                stepSize: 1
+              },
+              title: {
+                display: true,
+                text: 'Matches Played'
+              }
+            }
+          }
+        }
+      });
+
+      window.matchesTimelineChartInstance = matchesTimelineChart;
+    }
+
+    // Player Box Plot - 11-point sets
+    const playerBoxData11 = {{ player_box_data_11|safe }};
+    const playerNames11 = Object.keys(playerBoxData11);
+    
+    if (playerNames11.length > 0) {
+      const boxtraces11 = playerNames11.map(name => ({
+        y: playerBoxData11[name],
+        name: name,
+        type: 'box',
+      }));
+
+      const boxLayout11 = {
+        title: 'Points Distribution by Player (Box Plot)',
+        yaxis: {
+          zeroline: false,
+        },
+        height: 500,
+        margin: {
+          l: 50,
+          r: 50,
+          t: 50,
+          b: 50,
+        },
+      };
+
+      Plotly.newPlot('player-boxplot-11-chart', boxtraces11, boxLayout11, {responsive: true});
+    }
+
+    // Player Box Plot - 21-point sets
+    const playerBoxData21 = {{ player_box_data_21|safe }};
+    const playerNames21 = Object.keys(playerBoxData21);
+    
+    if (playerNames21.length > 0) {
+      const boxtraces21 = playerNames21.map(name => ({
+        y: playerBoxData21[name],
+        name: name,
+        type: 'box',
+      }));
+
+      const boxLayout21 = {
+        title: 'Points Distribution by Player (Box Plot)',
+        yaxis: {
+          zeroline: false,
+        },
+        height: 500,
+        margin: {
+          l: 50,
+          r: 50,
+          t: 50,
+          b: 50,
+        },
+      };
+
+      Plotly.newPlot('player-boxplot-21-chart', boxtraces21, boxLayout21, {responsive: true});
+    }
+  </script>
+{% endblock %}
