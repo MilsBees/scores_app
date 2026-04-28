@@ -1,0 +1,30 @@
+# Histograms for different set types in Squash App
+
+### Who
+
+<!--Who does this benefit or who will this affect? Who should be able to view this?-->
+
+- Squash players reviewing their performance statistics
+
+### What
+
+<!--What problem needs addressing?-->
+
+- Currently, we do some work to split some graphs on the General State page to split between set types. The calculation there is very simple, if a set reached 21 points, it is counted as a 21-point set. Otherwise it is an 11-point set. 
+- This is flawed of course, as you could in theory have an 11-point set that just happens to reach 21 points or more if it took that long to create a 2 point difference
+- Therefore, we should be able to indicate when creating a match or session whether it is a 21-point set match type, or 11-point set match type.
+
+### Why
+
+<!--What value does this add?-->
+
+- If we have match type as a database field, it makes creates graphs for the stats page much easier as you don't have to calculate things on the fly.
+- In addition, it would be useful to have an option to indicate whether a set was incomplete, as there could be situations where you want to filter this out as well. 
+
+### Acceptance Criteria
+
+<!--Testable done conditions; avoid implementation detail.-->
+
+- [ ] A user can enter select match type when creating a new match or new session
+- [ ] A set is marked by incomplete if it falls under a match type but a player didn't reach the minimum score (i.e. 11 for an 11-point set or 21 for a 21-point set)
+- [ ] Fields are added to a Squash match (Set type and Complete/Incomplete)

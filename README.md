@@ -71,3 +71,10 @@ cd yamb_scores
 python manage.py migrate
 python manage.py runserver
 ```
+
+## Way of Working
+
+- See the backlog folder for a list of open work items
+- If you have other ideas, feel free to add them to the backlog
+- Create a merge request for whatever you have added
+- If you notice something missing in this file to get it working locally, please update the readme accordingly!
