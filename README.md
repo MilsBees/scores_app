@@ -1,4 +1,4 @@
-A Django web application for recording and tracking scores from multiple games. Track Yamb dice game sessions and Squash match results with player statistics, leaderboards, and detailed performance analytics.
+A Django web application for recording and tracking scores from multiple games. Track Yamb dice game sessions, Squash match results, and Sjoelen shuffleboard games with player statistics, leaderboards, and detailed performance analytics.
 
 ## Features
 
@@ -16,6 +16,12 @@ A Django web application for recording and tracking scores from multiple games. 
 - **Head-to-Head Analysis**: View detailed records between specific player pairings
 - **Performance Analysis**: Historical performance trends with customizable date ranges and visualizations
 - **Player Management**: Add and manage squash players
+
+### Sjoelen (Dutch Shuffleboard)
+- **Record Games**: Log Sjoelen games with multiple players and automatic score calculations
+- **Player Leaderboard**: View player rankings and statistics
+- **Player Statistics**: Detailed performance stats for individual players
+- **Game History**: Browse past games with score breakdowns
 
 ### General
 - **Unified Dashboard**: Home page with links to all available sports/games
