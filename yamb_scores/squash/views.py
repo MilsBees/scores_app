@@ -72,6 +72,7 @@ def new_session(request):
                 )
 
             date_played = session_form.cleaned_data["date_played"]
+            set_type = session_form.cleaned_data["set_type"]
 
             with transaction.atomic():
                 session, _ = SquashSession.objects.get_or_create(date_played=date_played)
@@ -97,7 +98,7 @@ def new_session(request):
                         session=session,
                         player_1=player_1,
                         player_2=player_2,
-                        defaults={"date_played": date_played},
+                        defaults={"date_played": date_played, "set_type": set_type},
                     )
 
                     current_max = (

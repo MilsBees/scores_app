@@ -50,6 +50,14 @@
           </div>
         {% endif %}
       </div>
+      <div style="margin-bottom: 1rem;">
+        {{ form.set_type.label_tag }}: {{ form.set_type }}
+        {% if form.set_type.errors %}
+          <div class="field-error">
+            {% for error in form.set_type.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
     </div>
     
     <h3>Sets</h3>

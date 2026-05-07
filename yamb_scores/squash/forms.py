@@ -57,9 +57,10 @@ class SquashMatchForm(forms.ModelForm):
 
     class Meta:
         model = SquashMatch
-        fields = ['player_1', 'player_2', 'date_played']
+        fields = ['player_1', 'player_2', 'date_played', 'set_type']
         widgets = {
-            'date_played': forms.DateInput(attrs={'type': 'date'})
+            'date_played': forms.DateInput(attrs={'type': 'date'}),
+            'set_type': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def clean(self):
@@ -110,6 +111,13 @@ SquashSetFormSet = inlineformset_factory(
 
 
 class SquashSessionForm(forms.ModelForm):
+    set_type = forms.ChoiceField(
+        choices=SquashMatch.SetType.choices,
+        initial=SquashMatch.SetType.ELEVEN,
+        label="Set type",
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
     class Meta:
         model = SquashSession
         fields = ["date_played"]
