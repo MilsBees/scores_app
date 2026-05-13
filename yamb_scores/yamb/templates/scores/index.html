@@ -26,8 +26,9 @@
   </style>
 </head>
 <body>
-  <nav>
+  <nav style="display: flex; justify-content: space-between; align-items: center;">
     <a href="{% url 'home:home' %}">← Back to home</a>
+    <a href="{% url 'scores:rules' %}">How to play</a>
   </nav>
   <h1>Yamb</h1>
   <nav>
@@ -41,7 +42,7 @@
   </nav>
   <main>
     <div class="card">
-      <p>Welcome to Yamb Scores! Use the tabs above to get started.</p>
+      <p>Welcome to Yamb Scores! Use the tabs above to get started.<br><br>New to Yamb? Check out <a href="{% url 'scores:rules' %}" style="color: #ff6b6b;">how to play</a>.</p>
     </div>
     <footer style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; font-size: 0.9rem; color: #666;">
       <a href="/admin/" style="color: #ff6b6b; text-decoration: none;">Admin</a>

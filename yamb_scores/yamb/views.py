@@ -11,6 +11,9 @@ from .forms import GameForm, ScoreFormSet, YambGameForm, YambScoresheetFormSet, 
 def index(request):
     return render(request, 'scores/index.html')
 
+def rules(request):
+    return render(request, 'scores/rules.html')
+
 def game_list(request):
     games = Game.objects.prefetch_related('scores__player').order_by('-played_at')[:50]
     return render(request, 'scores/game_list.html', {'games': games})

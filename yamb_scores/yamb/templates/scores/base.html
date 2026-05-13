@@ -13,6 +13,10 @@
 </style>
 {% endblock %}
 
+{% block nav_header_extra %}
+  <a href="{% url 'scores:rules' %}">How to play</a>
+{% endblock %}
+
 {% block nav_main %}
   <a href="{% url 'scores:new_game' %}">New game</a>
   <a href="{% url 'scores:yamb_list' %}">Scoresheet</a>

@@ -1,0 +1,187 @@
+{% extends "scores/base.html" %}
+
+{% block content %}
+<h2>How to Play Yamb</h2>
+
+<div class="card">
+  <p>Yamb is a dice game similar to Yahtzee. Players roll 5 dice up to 3 times per turn, trying to fill in their scoresheet with the best possible combinations.</p>
+</div>
+
+<h3>Equipment</h3>
+<div class="card">
+  <ul style="margin: 0; padding-left: 1.5rem;">
+    <li>5 six-sided dice</li>
+    <li>A scoresheet for each player</li>
+  </ul>
+</div>
+
+<h3>Basic Gameplay</h3>
+<div class="card">
+  <ol style="margin: 0; padding-left: 1.5rem;">
+    <li><strong>Roll all 5 dice</strong> - This is your first roll</li>
+    <li><strong>Keep or re-roll</strong> - Set aside any dice you want to keep and re-roll the rest</li>
+    <li><strong>Roll again (optional)</strong> - You can roll up to 3 times total per turn</li>
+    <li><strong>Fill in your scoresheet</strong> - Choose a cell to write your score based on the column rules</li>
+  </ol>
+</div>
+
+<h3>The Scoresheet</h3>
+<div class="card">
+  <p>The scoresheet has <strong>12 rows</strong> (scoring categories) and <strong>4 columns</strong> (fill order rules).</p>
+</div>
+
+<h3>Columns (Fill Order)</h3>
+<div class="card">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+        <th style="padding: 0.75rem; text-align: left; width: 100px;">Column</th>
+        <th style="padding: 0.75rem; text-align: left;">Rule</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">↓ Down</td>
+        <td style="padding: 0.75rem;">Fill from top to bottom. You must fill the next empty row in order.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">↑ Up</td>
+        <td style="padding: 0.75rem;">Fill from bottom to top. You must fill the next empty row in order.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">L (Libre)</td>
+        <td style="padding: 0.75rem;">Free column. Fill any empty row in any order.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">S (Single)</td>
+        <td style="padding: 0.75rem;">You can only fill a cell in this column after your first roll (no re-rolls allowed).</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Rows (Scoring Categories)</h3>
+
+<h4 style="margin-top: 1.5rem;">Number Rows (1-6)</h4>
+<div class="card">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+        <th style="padding: 0.75rem; text-align: left; width: 80px;">Row</th>
+        <th style="padding: 0.75rem; text-align: left;">Scoring</th>
+        <th style="padding: 0.75rem; text-align: left; width: 150px;">Multiplier</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">1s</td>
+        <td style="padding: 0.75rem;">Count of dice showing 1</td>
+        <td style="padding: 0.75rem;">×10</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">2s</td>
+        <td style="padding: 0.75rem;">Count of dice showing 2</td>
+        <td style="padding: 0.75rem;">×20</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">3s</td>
+        <td style="padding: 0.75rem;">Count of dice showing 3</td>
+        <td style="padding: 0.75rem;">×30</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">4s</td>
+        <td style="padding: 0.75rem;">Count of dice showing 4</td>
+        <td style="padding: 0.75rem;">×40</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">5s</td>
+        <td style="padding: 0.75rem;">Count of dice showing 5</td>
+        <td style="padding: 0.75rem;">×50</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">6s</td>
+        <td style="padding: 0.75rem;">Count of dice showing 6</td>
+        <td style="padding: 0.75rem;">×60</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 1rem; font-style: italic; color: #666;">
+    <strong>Row total:</strong> (sum of all 4 columns - 12) × multiplier. The target is 3 per column (12 total = 0 points). Example for row 3: if you roll 4+3+2+3 = 12 → 0 points. If you roll 4+4+3+4 = 15 → (15-12) × 30 = +90 points.
+  </p>
+</div>
+
+<h4 style="margin-top: 1.5rem;">High/Low Rows</h4>
+<div class="card">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+        <th style="padding: 0.75rem; text-align: left; width: 80px;">Row</th>
+        <th style="padding: 0.75rem; text-align: left;">Description</th>
+        <th style="padding: 0.75rem; text-align: left;">Scoring</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">H (High)</td>
+        <td style="padding: 0.75rem;">Aim for the highest total</td>
+        <td style="padding: 0.75rem;">Sum of all 5 dice (max 30)</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">L (Low)</td>
+        <td style="padding: 0.75rem;">Aim for the lowest total (must be lower than H)</td>
+        <td style="padding: 0.75rem;">Sum of all 5 dice (min 5)</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 1rem; font-style: italic; color: #666;">
+    <strong>Bonus:</strong> If H + L ≥ 50 in a column, you get +30 bonus points for that column.
+  </p>
+</div>
+
+<h4 style="margin-top: 1.5rem;">Combination Rows</h4>
+<div class="card">
+  <table style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+        <th style="padding: 0.75rem; text-align: left; width: 80px;">Row</th>
+        <th style="padding: 0.75rem; text-align: left;">Required</th>
+        <th style="padding: 0.75rem; text-align: left;">Scoring</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">FH (Full House)</td>
+        <td style="padding: 0.75rem;">Three of a kind + a pair</td>
+        <td style="padding: 0.75rem;">40 points</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">C (Carré)</td>
+        <td style="padding: 0.75rem;">Four of a kind</td>
+        <td style="padding: 0.75rem;">60 points</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">S (Straight)</td>
+        <td style="padding: 0.75rem;">Five consecutive numbers (1-2-3-4-5 or 2-3-4-5-6)</td>
+        <td style="padding: 0.75rem;">80 points</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 0.75rem; font-weight: bold;">P (Poker)</td>
+        <td style="padding: 0.75rem;">Five of a kind (all 5 dice the same)</td>
+        <td style="padding: 0.75rem;">100 points</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 1rem; font-style: italic; color: #666;">
+    If you don't achieve the required combination, you must write 0 for that row.
+  </p>
+</div>
+
+<h3>Winning</h3>
+<div class="card">
+  <p>The game ends when all cells are filled. Add up all your scores from each column. The player with the highest total wins!</p>
+</div>
+
+<div style="margin-top: 2rem; text-align: center;">
+  <a href="{% url 'scores:index' %}" class="btn-primary-action">← Back to Yamb</a>
+</div>
+{% endblock %}

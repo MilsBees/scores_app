@@ -5,6 +5,7 @@ app_name = 'scores'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('rules/', views.rules, name='rules'),
     path('games/', views.game_list, name='game_list'),
     path('new/', views.new_game, name='new_game'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),

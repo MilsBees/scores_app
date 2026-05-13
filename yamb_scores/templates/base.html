@@ -159,8 +159,9 @@
   {% block extra_css %}{% endblock %}
 </head>
 <body>
-  <nav>
+  <nav style="display: flex; justify-content: space-between; align-items: center;">
     <a href="{% url 'home:home' %}">← Back to home</a>
+    {% block nav_header_extra %}{% endblock %}
   </nav>
   <h1>{% block title %}{% endblock %}</h1>
   <nav>
