@@ -203,37 +203,87 @@ def statistics(request):
         games_by_date[date_key] = games_by_date_dict.get(date_key, 0)
         current_date += timedelta(days=1)
     
-    # Calculate extremes for each round
-    round_1_scores = SjoelenScore.objects.filter(round_1__isnull=False).values_list('round_1', flat=True)
-    round_2_scores = SjoelenScore.objects.filter(round_2__isnull=False).values_list('round_2', flat=True)
-    round_3_scores = SjoelenScore.objects.filter(round_3__isnull=False).values_list('round_3', flat=True)
+    # Calculate extremes for each round with player names
+    def get_round_extreme(round_field, find_max=True):
+        """Get extreme score and player(s) for a given round field."""
+        scores = SjoelenScore.objects.filter(**{f'{round_field}__isnull': False}).select_related('player')
+        if not scores.exists():
+            return {'value': None, 'display': None, 'tooltip': None}
+        
+        if find_max:
+            extreme_value = scores.order_by(f'-{round_field}').first()
+            extreme_score = getattr(extreme_value, round_field)
+            matching = [s for s in scores if getattr(s, round_field) == extreme_score]
+        else:
+            extreme_value = scores.order_by(round_field).first()
+            extreme_score = getattr(extreme_value, round_field)
+            matching = [s for s in scores if getattr(s, round_field) == extreme_score]
+        
+        # Get unique player names
+        player_names = list(dict.fromkeys([s.player.name for s in matching]))
+        
+        if len(player_names) == 1:
+            display = f"{player_names[0]} ({extreme_score})"
+            tooltip = None
+        elif len(player_names) == 2:
+            display = f"{player_names[0]} & {player_names[1]} ({extreme_score})"
+            tooltip = None
+        else:
+            display = f"Multiple players ({extreme_score})"
+            tooltip = ", ".join(player_names)
+        
+        return {'value': extreme_score, 'display': display, 'tooltip': tooltip}
     
-    # Collect all individual round scores for "Any round"
-    all_round_scores = []
-    for score in SjoelenScore.objects.all():
-        if score.round_1 is not None:
-            all_round_scores.append(score.round_1)
-        if score.round_2 is not None:
-            all_round_scores.append(score.round_2)
-        if score.round_3 is not None:
-            all_round_scores.append(score.round_3)
+    def get_any_round_extreme(find_max=True):
+        """Get extreme score across all rounds with player(s)."""
+        all_round_data = []
+        for score in SjoelenScore.objects.select_related('player'):
+            if score.round_1 is not None:
+                all_round_data.append((score.round_1, score.player.name))
+            if score.round_2 is not None:
+                all_round_data.append((score.round_2, score.player.name))
+            if score.round_3 is not None:
+                all_round_data.append((score.round_3, score.player.name))
+        
+        if not all_round_data:
+            return {'value': None, 'display': None, 'tooltip': None}
+        
+        if find_max:
+            extreme_score = max(s[0] for s in all_round_data)
+        else:
+            extreme_score = min(s[0] for s in all_round_data)
+        
+        # Get unique player names with this score
+        player_names = list(dict.fromkeys([s[1] for s in all_round_data if s[0] == extreme_score]))
+        
+        if len(player_names) == 1:
+            display = f"{player_names[0]} ({extreme_score})"
+            tooltip = None
+        elif len(player_names) == 2:
+            display = f"{player_names[0]} & {player_names[1]} ({extreme_score})"
+            tooltip = None
+        else:
+            display = f"Multiple players ({extreme_score})"
+            tooltip = ", ".join(player_names)
+        
+        return {'value': extreme_score, 'display': display, 'tooltip': tooltip}
     
     extremes = {
         'round_1': {
-            'highest': max(round_1_scores) if round_1_scores else None,
-            'lowest': min(round_1_scores) if round_1_scores else None,
+            'highest': get_round_extreme('round_1', find_max=True),
+            'lowest': get_round_extreme('round_1', find_max=False),
         },
         'round_2': {
-            'highest': max(round_2_scores) if round_2_scores else None,
-            'lowest': min(round_2_scores) if round_2_scores else None,
+            'highest': get_round_extreme('round_2', find_max=True),
+            'lowest': get_round_extreme('round_2', find_max=False),
         },
         'round_3': {
-            'highest': max(round_3_scores) if round_3_scores else None,
-            'lowest': min(round_3_scores) if round_3_scores else None,
+            'highest': get_round_extreme('round_3', find_max=True),
+            'lowest': get_round_extreme('round_3', find_max=False),
         },
         'any_round': {
-            'highest': max(all_round_scores) if all_round_scores else None,
-            'lowest': min(all_round_scores) if all_round_scores else None,
+            'highest': get_any_round_extreme(find_max=True),
+            'lowest': get_any_round_extreme(find_max=False),
         }
     }
 

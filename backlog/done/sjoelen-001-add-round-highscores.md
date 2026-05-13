@@ -25,7 +25,7 @@
 
 <!--Testable done conditions; avoid implementation detail.-->
 
-- [ ] The Round Extremes table displays the player name alongside each highest score
-- [ ] The Round Extremes table displays the player name alongside each lowest score
-- [ ] If multiple players share the same extreme score, all player names are shown
-- [ ] The table remains readable and well-formatted with the additional information
+- [x] The Round Extremes table displays the player name alongside each highest score
+- [x] The Round Extremes table displays the player name alongside each lowest score
+- [x] If multiple players share the same extreme score, all player names are shown
+- [x] The table remains readable and well-formatted with the additional information

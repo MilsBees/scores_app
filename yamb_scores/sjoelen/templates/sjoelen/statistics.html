@@ -59,23 +59,55 @@
       <tbody>
         <tr style="border-bottom: 1px solid #ddd;">
           <td style="padding: 0.75rem; border-right: 1px solid #ddd;">Round 1</td>
-          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">{{ extremes.round_1.highest|default:"—" }}</td>
-          <td style="padding: 0.75rem;">{{ extremes.round_1.lowest|default:"—" }}</td>
+          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">
+            {% if extremes.round_1.highest.display %}
+              <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.round_1.highest.tooltip %} cursor: help;{% endif %}" {% if extremes.round_1.highest.tooltip %}title="{{ extremes.round_1.highest.tooltip }}"{% endif %}>{{ extremes.round_1.highest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="padding: 0.75rem;">
+            {% if extremes.round_1.lowest.display %}
+              <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.round_1.lowest.tooltip %} cursor: help;{% endif %}" {% if extremes.round_1.lowest.tooltip %}title="{{ extremes.round_1.lowest.tooltip }}"{% endif %}>{{ extremes.round_1.lowest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
         </tr>
         <tr style="border-bottom: 1px solid #ddd;">
           <td style="padding: 0.75rem; border-right: 1px solid #ddd;">Round 2</td>
-          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">{{ extremes.round_2.highest|default:"—" }}</td>
-          <td style="padding: 0.75rem;">{{ extremes.round_2.lowest|default:"—" }}</td>
+          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">
+            {% if extremes.round_2.highest.display %}
+              <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.round_2.highest.tooltip %} cursor: help;{% endif %}" {% if extremes.round_2.highest.tooltip %}title="{{ extremes.round_2.highest.tooltip }}"{% endif %}>{{ extremes.round_2.highest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="padding: 0.75rem;">
+            {% if extremes.round_2.lowest.display %}
+              <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.round_2.lowest.tooltip %} cursor: help;{% endif %}" {% if extremes.round_2.lowest.tooltip %}title="{{ extremes.round_2.lowest.tooltip }}"{% endif %}>{{ extremes.round_2.lowest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
         </tr>
         <tr style="border-bottom: 1px solid #ddd;">
           <td style="padding: 0.75rem; border-right: 1px solid #ddd;">Round 3</td>
-          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">{{ extremes.round_3.highest|default:"—" }}</td>
-          <td style="padding: 0.75rem;">{{ extremes.round_3.lowest|default:"—" }}</td>
+          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">
+            {% if extremes.round_3.highest.display %}
+              <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.round_3.highest.tooltip %} cursor: help;{% endif %}" {% if extremes.round_3.highest.tooltip %}title="{{ extremes.round_3.highest.tooltip }}"{% endif %}>{{ extremes.round_3.highest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="padding: 0.75rem;">
+            {% if extremes.round_3.lowest.display %}
+              <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.round_3.lowest.tooltip %} cursor: help;{% endif %}" {% if extremes.round_3.lowest.tooltip %}title="{{ extremes.round_3.lowest.tooltip }}"{% endif %}>{{ extremes.round_3.lowest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
         </tr>
         <tr style="background-color: #f8f9fa; font-weight: bold;">
           <td style="padding: 0.75rem; border-right: 1px solid #ddd;">Any Round</td>
-          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">{{ extremes.any_round.highest|default:"—" }}</td>
-          <td style="padding: 0.75rem;">{{ extremes.any_round.lowest|default:"—" }}</td>
+          <td style="padding: 0.75rem; border-right: 1px solid #ddd;">
+            {% if extremes.any_round.highest.display %}
+              <span style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.any_round.highest.tooltip %} cursor: help;{% endif %}" {% if extremes.any_round.highest.tooltip %}title="{{ extremes.any_round.highest.tooltip }}"{% endif %}>{{ extremes.any_round.highest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="padding: 0.75rem;">
+            {% if extremes.any_round.lowest.display %}
+              <span style="background: #f8d7da; padding: 0.25rem 0.5rem; border-radius: 3px;{% if extremes.any_round.lowest.tooltip %} cursor: help;{% endif %}" {% if extremes.any_round.lowest.tooltip %}title="{{ extremes.any_round.lowest.tooltip }}"{% endif %}>{{ extremes.any_round.lowest.display }}</span>
+            {% else %}—{% endif %}
+          </td>
         </tr>
       </tbody>
     </table>
