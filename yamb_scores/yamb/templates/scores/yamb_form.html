@@ -36,6 +36,10 @@
           {% endif %}
           <h3>{{ form.player.label }}: {{ form.player }}</h3>
           
+          <div class="new-player-prompt" style="display: none; background: #e7f3ff; border: 1px solid #b3d7ff; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border-radius: 4px; font-size: 0.9rem;">
+            🎲 New to Yamb? <a href="{% url 'scores:rules' %}" target="_blank" style="color: #0066cc;">Check out the rules</a> before you start!
+          </div>
+          
           <div class="row-1-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
           <div class="row-2-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
           <div class="row-3-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
@@ -217,6 +221,10 @@
             <option value="">-- Select a player --</option>
           </select>
         </h3>
+        
+        <div class="new-player-prompt" style="display: none; background: #e7f3ff; border: 1px solid #b3d7ff; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border-radius: 4px; font-size: 0.9rem;">
+          🎲 New to Yamb? <a href="{% url 'scores:rules' %}" target="_blank" style="color: #0066cc;">Check out the rules</a> before you start!
+        </div>
         
         <div class="row-1-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
         <div class="row-2-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>

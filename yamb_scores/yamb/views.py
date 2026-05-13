@@ -163,8 +163,11 @@ def new_yamb(request):
         form = YambGameForm()
         formset = YambScoresheetFormSet(instance=YambGame())
     
-    # Get all players for the JavaScript form builder
-    players = Player.objects.all().order_by('name').values('id', 'name')
+    # Get all players for the JavaScript form builder, with game counts
+    from django.db.models import Count
+    players = Player.objects.annotate(
+        game_count=Count('yamb_scoresheets')
+    ).order_by('name').values('id', 'name', 'game_count')
     import json
     players_json = json.dumps(list(players))
     

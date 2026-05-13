@@ -74,6 +74,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <button type="button" class="remove-scoresheet" style="position: absolute; top: 0; right: 0; background: #dc3545; color: white; border: none; border-radius: 4px; width: 32px; height: 32px; cursor: pointer; font-size: 20px; line-height: 1; padding: 0;">&times;</button>
         <h3>Player: ${playerSelectHTML}</h3>
         
+        <div class="new-player-prompt" style="display: none; background: #e7f3ff; border: 1px solid #b3d7ff; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border-radius: 4px; font-size: 0.9rem;">
+          🎲 New to Yamb? <a href="/yamb/rules/" target="_blank" style="color: #0066cc;">Check out the rules</a> before you start!
+        </div>
+        
         <div class="row-1-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
         <div class="row-2-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
         <div class="row-3-error" style="display: none; color: #c33; background: #fee; border: 1px solid #c33; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; font-size: 0.9rem;"></div>
@@ -1228,6 +1232,48 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // New player prompt - show for players with 5 or fewer games
+  function attachNewPlayerPromptListener(wrapper) {
+    const playerSelect = wrapper.querySelector('[name*="-player"]');
+    const promptDiv = wrapper.querySelector('.new-player-prompt');
+    
+    if (!playerSelect || !promptDiv) return;
+    
+    // Get players data with game counts
+    const containerElement = document.getElementById('scoresheet-container');
+    const playersData = containerElement?.getAttribute('data-player-options');
+    let players = [];
+    
+    if (playersData) {
+      try {
+        players = JSON.parse(playersData);
+      } catch (e) {
+        console.error('Failed to parse player data for prompt:', e);
+        return;
+      }
+    }
+    
+    function checkAndShowPrompt() {
+      const selectedId = parseInt(playerSelect.value);
+      if (!selectedId) {
+        promptDiv.style.display = 'none';
+        return;
+      }
+      
+      const player = players.find(p => p.id === selectedId);
+      if (player && player.game_count <= 5) {
+        promptDiv.style.display = 'block';
+      } else {
+        promptDiv.style.display = 'none';
+      }
+    }
+    
+    playerSelect.addEventListener('change', checkAndShowPrompt);
+    
+    // Check on initial load in case a player is pre-selected
+    checkAndShowPrompt();
+  }
+  
   // Add new scoresheet
   addBtn.addEventListener('click', function(e) {
     e.preventDefault();
@@ -1258,6 +1304,7 @@ document.addEventListener('DOMContentLoaded', function() {
     attachRowCListeners(newWrapper);
     attachRowSListeners(newWrapper);
     attachRowPListeners(newWrapper);
+    attachNewPlayerPromptListener(newWrapper);
   });
   
   // Attach remove handlers to existing X buttons
@@ -1279,5 +1326,6 @@ document.addEventListener('DOMContentLoaded', function() {
     attachRowCListeners(wrapper);
     attachRowSListeners(wrapper);
     attachRowPListeners(wrapper);
+    attachNewPlayerPromptListener(wrapper);
   });
 });

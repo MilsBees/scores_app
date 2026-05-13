@@ -23,5 +23,5 @@
 
 <!--Testable done conditions; avoid implementation detail.-->
 
-- [ ] The rules of the game are described and documented on the app
-- [ ] (Optional) If a player has fewer than 5 games played, they are prompted to view the rules.
+- [x] The rules of the game are described and documented on the app
+- [x] (Optional) If a player has fewer than 5 games played, they are prompted to view the rules.
