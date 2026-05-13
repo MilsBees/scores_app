@@ -132,6 +132,11 @@ def match_list(request):
     return render(request, 'squash/match_list.html', {'matches': matches})
 
 def leaderboard(request):
+    # Get set_type filter from query params
+    set_type_filter = request.GET.get('set_type')
+    if set_type_filter not in ('11', '21'):
+        set_type_filter = None
+    
     abs_allowed_sorts = {
         "matches_won",
         "matches_drawn",
@@ -172,24 +177,21 @@ def leaderboard(request):
     for player in players:
         # Matches where player participated
         matches = SquashMatch.objects.filter(Q(player_1=player) | Q(player_2=player))
+        if set_type_filter:
+            matches = matches.filter(set_type=set_type_filter)
+        
+        # Base queryset for sets, filtered by set_type if specified
+        sets_as_p1 = SquashSet.objects.filter(match__player_1=player)
+        sets_as_p2 = SquashSet.objects.filter(match__player_2=player)
+        if set_type_filter:
+            sets_as_p1 = sets_as_p1.filter(match__set_type=set_type_filter)
+            sets_as_p2 = sets_as_p2.filter(match__set_type=set_type_filter)
         
         # Total points for / against
-        points_for_as_p1 = (
-            SquashSet.objects.filter(match__player_1=player).aggregate(Sum("player_1_points"))["player_1_points__sum"]
-            or 0
-        )
-        points_for_as_p2 = (
-            SquashSet.objects.filter(match__player_2=player).aggregate(Sum("player_2_points"))["player_2_points__sum"]
-            or 0
-        )
-        points_against_as_p1 = (
-            SquashSet.objects.filter(match__player_1=player).aggregate(Sum("player_2_points"))["player_2_points__sum"]
-            or 0
-        )
-        points_against_as_p2 = (
-            SquashSet.objects.filter(match__player_2=player).aggregate(Sum("player_1_points"))["player_1_points__sum"]
-            or 0
-        )
+        points_for_as_p1 = sets_as_p1.aggregate(Sum("player_1_points"))["player_1_points__sum"] or 0
+        points_for_as_p2 = sets_as_p2.aggregate(Sum("player_2_points"))["player_2_points__sum"] or 0
+        points_against_as_p1 = sets_as_p1.aggregate(Sum("player_2_points"))["player_2_points__sum"] or 0
+        points_against_as_p2 = sets_as_p2.aggregate(Sum("player_1_points"))["player_1_points__sum"] or 0
 
         points_for = points_for_as_p1 + points_for_as_p2
         points_against = points_against_as_p1 + points_against_as_p2
@@ -197,17 +199,20 @@ def leaderboard(request):
         points_total = points_for + points_against
         point_win_pct = (points_for / points_total * 100.0) if points_total > 0 else 0.0
         
-        # Total sets won
-        sets_won_as_p1 = SquashSet.objects.filter(match__player_1=player, player_1_points__gt=F('player_2_points')).count()
-        sets_won_as_p2 = SquashSet.objects.filter(match__player_2=player, player_2_points__gt=F('player_1_points')).count()
+        # Total sets won (using filtered querysets)
+        sets_won_as_p1 = sets_as_p1.filter(player_1_points__gt=F('player_2_points')).count()
+        sets_won_as_p2 = sets_as_p2.filter(player_2_points__gt=F('player_1_points')).count()
         total_sets_won = sets_won_as_p1 + sets_won_as_p2
 
-        sets_lost_as_p1 = SquashSet.objects.filter(match__player_1=player, player_1_points__lt=F("player_2_points")).count()
-        sets_lost_as_p2 = SquashSet.objects.filter(match__player_2=player, player_2_points__lt=F("player_1_points")).count()
+        sets_lost_as_p1 = sets_as_p1.filter(player_1_points__lt=F("player_2_points")).count()
+        sets_lost_as_p2 = sets_as_p2.filter(player_2_points__lt=F("player_1_points")).count()
         total_sets_lost = sets_lost_as_p1 + sets_lost_as_p2
         
         # Total sets played
-        total_sets = SquashSet.objects.filter(Q(match__player_1=player) | Q(match__player_2=player)).count()
+        all_player_sets = SquashSet.objects.filter(Q(match__player_1=player) | Q(match__player_2=player))
+        if set_type_filter:
+            all_player_sets = all_player_sets.filter(match__set_type=set_type_filter)
+        total_sets = all_player_sets.count()
         set_win_pct = (total_sets_won / total_sets * 100.0) if total_sets > 0 else 0.0
         
         # Last match date
@@ -299,6 +304,8 @@ def leaderboard(request):
             "rel_sort": rel_sort,
             "rel_dir": rel_dir,
         }
+        if set_type_filter:
+            params["set_type"] = set_type_filter
         params.update(updates)
         return "&".join([f"{k}={v}" for k, v in params.items()])
 
@@ -341,10 +348,16 @@ def leaderboard(request):
             "rel_dir": rel_dir,
             "abs_sort_links": abs_sort_links,
             "rel_sort_links": rel_sort_links,
+            "set_type_filter": set_type_filter,
         },
     )
 
 def h2h(request):
+    # Get set_type filter from query params
+    set_type_filter = request.GET.get('set_type')
+    if set_type_filter not in ('11', '21'):
+        set_type_filter = None
+    
     players = SquashPlayer.objects.all().order_by('name')
     selected_player = None
     h2h_data = []
@@ -370,10 +383,16 @@ def h2h(request):
     if selected_player_id:
         selected_player = get_object_or_404(SquashPlayer, id=selected_player_id)
         
-        # Get all opponents
+        # Get all opponents - filter by set_type if specified
+        opponent_matches = SquashMatch.objects.filter(
+            Q(player_1=selected_player) | Q(player_2=selected_player)
+        )
+        if set_type_filter:
+            opponent_matches = opponent_matches.filter(set_type=set_type_filter)
+        
         opponents = SquashPlayer.objects.filter(
-            Q(squash_matches_as_p1__player_2=selected_player) |
-            Q(squash_matches_as_p2__player_1=selected_player)
+            Q(squash_matches_as_p1__in=opponent_matches, squash_matches_as_p1__player_2=selected_player) |
+            Q(squash_matches_as_p2__in=opponent_matches, squash_matches_as_p2__player_1=selected_player)
         ).distinct().order_by('name')
         
         for opponent in opponents:
@@ -381,6 +400,8 @@ def h2h(request):
                 Q(player_1=selected_player, player_2=opponent) |
                 Q(player_1=opponent, player_2=selected_player)
             ).prefetch_related('sets')
+            if set_type_filter:
+                matches = matches.filter(set_type=set_type_filter)
             
             total_points_for = 0
             total_points_against = 0
@@ -439,8 +460,12 @@ def h2h(request):
         h2h_data.sort(key=lambda r: r.get(sort, 0), reverse=(direction == "desc"))
 
     sort_links = {}
-    # Preserve selected player in query string for sorting links.
-    player_qs = f"player={selected_player_id}&" if selected_player_id else ""
+    # Preserve selected player and set_type in query string for sorting links.
+    base_qs = ""
+    if selected_player_id:
+        base_qs += f"player={selected_player_id}&"
+    if set_type_filter:
+        base_qs += f"set_type={set_type_filter}&"
     for col in [
         "points_for",
         "points_against",
@@ -452,7 +477,7 @@ def h2h(request):
         "matches_drawn",
     ]:
         next_dir = "asc" if (sort == col and direction == "desc") else "desc"
-        sort_links[col] = f"{player_qs}sort={col}&dir={next_dir}"
+        sort_links[col] = f"{base_qs}sort={col}&dir={next_dir}"
     
     return render(request, 'squash/h2h.html', {
         'players': players,
@@ -461,6 +486,7 @@ def h2h(request):
         'sort': sort,
         'dir': direction,
         'sort_links': sort_links,
+        'set_type_filter': set_type_filter,
     })
 
 
@@ -518,12 +544,21 @@ def statistics(request):
     import json
     from statistics import stdev
     
-    # Get all matches and sets
+    # Get set_type filter from query params (None = all, '11' = 11-point, '21' = 21-point)
+    set_type_filter = request.GET.get('set_type')
+    if set_type_filter not in ('11', '21'):
+        set_type_filter = None
+    
+    # Get all matches and sets, filtered by set_type if specified
     all_matches = SquashMatch.objects.all().prefetch_related('sets')
+    if set_type_filter:
+        all_matches = all_matches.filter(set_type=set_type_filter)
     total_matches = all_matches.count()
     
-    # Get all sets with scores
+    # Get all sets with scores, filtered by match set_type if specified
     all_sets = SquashSet.objects.filter(player_1_points__isnull=False, player_2_points__isnull=False)
+    if set_type_filter:
+        all_sets = all_sets.filter(match__set_type=set_type_filter)
     all_set_scores = []
     
     for s in all_sets:
@@ -546,6 +581,8 @@ def statistics(request):
         player_matches = SquashMatch.objects.filter(
             Q(player_1=player) | Q(player_2=player)
         ).prefetch_related('sets')
+        if set_type_filter:
+            player_matches = player_matches.filter(set_type=set_type_filter)
         
         matches_won = 0
         matches_total = 0
@@ -587,8 +624,6 @@ def statistics(request):
                 'points_win_pct': round(points_win_pct, 1),
             }
     
-    # Get all players with match counts
-    
     # Player stats - collect scores for each player
     player_stats = []
     player_box_data = {}
@@ -601,6 +636,8 @@ def statistics(request):
             player_1_points__isnull=False,
             player_2_points__isnull=False
         )
+        if set_type_filter:
+            player_sets = player_sets.filter(match__set_type=set_type_filter)
         
         player_scores = []
         player_scores_11 = []
@@ -614,12 +651,12 @@ def statistics(request):
             
             player_scores.append(score)
             
-            # Classify by set type
-            winning_score = max(s.player_1_points, s.player_2_points)
-            if winning_score < 21:
-                player_scores_11.append(score)
-            else:
-                player_scores_21.append(score)
+            # Collect by set type (for Overall view)
+            if not set_type_filter:
+                if s.match.set_type == '11':
+                    player_scores_11.append(score)
+                else:
+                    player_scores_21.append(score)
         
         if player_scores:
             avg = sum(player_scores) / len(player_scores)
@@ -642,10 +679,12 @@ def statistics(request):
             
             player_box_data[player.name] = sorted(player_scores)
             
-            if player_scores_11:
-                player_box_data_11[player.name] = sorted(player_scores_11)
-            if player_scores_21:
-                player_box_data_21[player.name] = sorted(player_scores_21)
+            # For Overall view, build separate data
+            if not set_type_filter:
+                if player_scores_11:
+                    player_box_data_11[player.name] = sorted(player_scores_11)
+                if player_scores_21:
+                    player_box_data_21[player.name] = sorted(player_scores_21)
     
     # Matches over time - all time
     matches_by_date_dict = {}
@@ -665,6 +704,9 @@ def statistics(request):
         current_date += timedelta(days=1)
     
     # Match extremes - three types: Set Differential, Point Differential in Set, Point Differential in Match
+    # Option to include incomplete sets (default: exclude)
+    include_incomplete = request.GET.get('include_incomplete') == '1'
+    
     match_extremes = []
     
     if all_matches.exists():
@@ -672,10 +714,13 @@ def statistics(request):
         set_diffs_data = []
         for match in all_matches:
             sets = match.sets.all().exclude(player_1_points__isnull=True, player_2_points__isnull=True)
+            if not include_incomplete:
+                sets = sets.filter(is_incomplete=False)
             if sets.exists():
                 p1_sets_won = sum(1 for s in sets if s.player_1_points > s.player_2_points)
                 p2_sets_won = sum(1 for s in sets if s.player_2_points > s.player_1_points)
                 differential = abs(p1_sets_won - p2_sets_won)
+                total_sets = p1_sets_won + p2_sets_won
                 
                 # Record the player with more sets won
                 if p1_sets_won > p2_sets_won:
@@ -689,40 +734,30 @@ def statistics(request):
                 
                 set_diffs_data.append({
                     'value': differential,
+                    'total': total_sets,
                     'display': f"{player_name} {score_str} {opponent_name}",
                     'match': match,
                 })
         
         if set_diffs_data:
-            set_diffs_sorted = sorted(set_diffs_data, key=lambda x: x['value'], reverse=True)
+            # Sort by differential desc, then by total desc for tiebreaking
+            set_diffs_sorted = sorted(set_diffs_data, key=lambda x: (x['value'], x['total']), reverse=True)
             
-            # Largest differential
-            largest_value = set_diffs_sorted[0]['value']
-            largest_set_diffs = [d for d in set_diffs_sorted if d['value'] == largest_value]
+            # Largest differential (first after sorting)
+            largest_entry = set_diffs_sorted[0]
+            largest_display = largest_entry['display']
+            largest_tooltip = None
             
-            if len(largest_set_diffs) == 1:
-                largest_display = largest_set_diffs[0]['display']
-                largest_tooltip = None
-            elif len(largest_set_diffs) == 2:
-                largest_display = f"{largest_set_diffs[0]['display']} & {largest_set_diffs[1]['display']}"
-                largest_tooltip = None
-            else:
-                largest_display = f"Multiple matches ({largest_value})"
-                largest_tooltip = " / ".join([d['display'] for d in largest_set_diffs])
-            
-            # Smallest differential
-            smallest_value = set_diffs_sorted[-1]['value']
-            smallest_set_diffs = [d for d in set_diffs_sorted if d['value'] == smallest_value]
-            
-            if len(smallest_set_diffs) == 1:
-                smallest_display = smallest_set_diffs[0]['display']
-                smallest_tooltip = None
-            elif len(smallest_set_diffs) == 2:
-                smallest_display = f"{smallest_set_diffs[0]['display']} & {smallest_set_diffs[1]['display']}"
-                smallest_tooltip = None
-            else:
-                smallest_display = f"Multiple matches ({smallest_value})"
-                smallest_tooltip = " / ".join([d['display'] for d in smallest_set_diffs])
+            # Smallest differential (filter to smallest value, then pick highest total)
+            smallest_value = min(d['value'] for d in set_diffs_data)
+            smallest_candidates = sorted(
+                [d for d in set_diffs_data if d['value'] == smallest_value],
+                key=lambda x: x['total'],
+                reverse=True
+            )
+            smallest_entry = smallest_candidates[0]
+            smallest_display = smallest_entry['display']
+            smallest_tooltip = None
             
             match_extremes.append({
                 'type': 'Set Differential (Single match)',
@@ -734,8 +769,12 @@ def statistics(request):
         
         # 2. POINT DIFFERENTIAL (SINGLE SET)
         set_point_diffs_data = []
-        for s in all_sets.filter(match__isnull=False):
+        extremes_sets = all_sets.filter(match__isnull=False)
+        if not include_incomplete:
+            extremes_sets = extremes_sets.filter(is_incomplete=False)
+        for s in extremes_sets:
             differential = abs(s.player_1_points - s.player_2_points)
+            total_points = s.player_1_points + s.player_2_points
             
             if s.player_1_points > s.player_2_points:
                 player_name = s.match.player_1.name
@@ -748,39 +787,29 @@ def statistics(request):
             
             set_point_diffs_data.append({
                 'value': differential,
+                'total': total_points,
                 'display': f"{player_name} {score_str} {opponent_name}",
             })
         
         if set_point_diffs_data:
-            set_point_diffs_sorted = sorted(set_point_diffs_data, key=lambda x: x['value'], reverse=True)
+            # Sort by differential desc, then by total desc for tiebreaking
+            set_point_diffs_sorted = sorted(set_point_diffs_data, key=lambda x: (x['value'], x['total']), reverse=True)
             
-            # Largest point differential in a set
-            largest_value = set_point_diffs_sorted[0]['value']
-            largest_point_diffs = [d for d in set_point_diffs_sorted if d['value'] == largest_value]
+            # Largest point differential (first after sorting)
+            largest_entry = set_point_diffs_sorted[0]
+            largest_display = largest_entry['display']
+            largest_tooltip = None
             
-            if len(largest_point_diffs) == 1:
-                largest_display = largest_point_diffs[0]['display']
-                largest_tooltip = None
-            elif len(largest_point_diffs) == 2:
-                largest_display = f"{largest_point_diffs[0]['display']} & {largest_point_diffs[1]['display']}"
-                largest_tooltip = None
-            else:
-                largest_display = f"Multiple sets ({largest_value}pt)"
-                largest_tooltip = " / ".join([d['display'] for d in largest_point_diffs])
-            
-            # Smallest point differential in a set
-            smallest_value = set_point_diffs_sorted[-1]['value']
-            smallest_point_diffs = [d for d in set_point_diffs_sorted if d['value'] == smallest_value]
-            
-            if len(smallest_point_diffs) == 1:
-                smallest_display = smallest_point_diffs[0]['display']
-                smallest_tooltip = None
-            elif len(smallest_point_diffs) == 2:
-                smallest_display = f"{smallest_point_diffs[0]['display']} & {smallest_point_diffs[1]['display']}"
-                smallest_tooltip = None
-            else:
-                smallest_display = f"Multiple sets ({smallest_value}pt)"
-                smallest_tooltip = " / ".join([d['display'] for d in smallest_point_diffs])
+            # Smallest point differential (filter to smallest value, then pick highest total)
+            smallest_value = min(d['value'] for d in set_point_diffs_data)
+            smallest_candidates = sorted(
+                [d for d in set_point_diffs_data if d['value'] == smallest_value],
+                key=lambda x: x['total'],
+                reverse=True
+            )
+            smallest_entry = smallest_candidates[0]
+            smallest_display = smallest_entry['display']
+            smallest_tooltip = None
             
             match_extremes.append({
                 'type': 'Point differential (Single set)',
@@ -794,10 +823,13 @@ def statistics(request):
         match_point_diffs_data = []
         for match in all_matches:
             sets = match.sets.all().exclude(player_1_points__isnull=True, player_2_points__isnull=True)
+            if not include_incomplete:
+                sets = sets.filter(is_incomplete=False)
             if sets.exists():
                 total_p1 = sum(s.player_1_points for s in sets)
                 total_p2 = sum(s.player_2_points for s in sets)
                 differential = abs(total_p1 - total_p2)
+                total_points = total_p1 + total_p2
                 
                 if total_p1 > total_p2:
                     player_name = match.player_1.name
@@ -810,39 +842,29 @@ def statistics(request):
                 
                 match_point_diffs_data.append({
                     'value': differential,
+                    'total': total_points,
                     'display': f"{player_name} {score_str} {opponent_name}",
                 })
         
         if match_point_diffs_data:
-            match_point_diffs_sorted = sorted(match_point_diffs_data, key=lambda x: x['value'], reverse=True)
+            # Sort by differential desc, then by total desc for tiebreaking
+            match_point_diffs_sorted = sorted(match_point_diffs_data, key=lambda x: (x['value'], x['total']), reverse=True)
             
-            # Largest point differential in a match
-            largest_value = match_point_diffs_sorted[0]['value']
-            largest_match_diffs = [d for d in match_point_diffs_sorted if d['value'] == largest_value]
+            # Largest point differential (first after sorting)
+            largest_entry = match_point_diffs_sorted[0]
+            largest_display = largest_entry['display']
+            largest_tooltip = None
             
-            if len(largest_match_diffs) == 1:
-                largest_display = largest_match_diffs[0]['display']
-                largest_tooltip = None
-            elif len(largest_match_diffs) == 2:
-                largest_display = f"{largest_match_diffs[0]['display']} & {largest_match_diffs[1]['display']}"
-                largest_tooltip = None
-            else:
-                largest_display = f"Multiple matches ({largest_value}pt)"
-                largest_tooltip = " / ".join([d['display'] for d in largest_match_diffs])
-            
-            # Smallest point differential in a match
-            smallest_value = match_point_diffs_sorted[-1]['value']
-            smallest_match_diffs = [d for d in match_point_diffs_sorted if d['value'] == smallest_value]
-            
-            if len(smallest_match_diffs) == 1:
-                smallest_display = smallest_match_diffs[0]['display']
-                smallest_tooltip = None
-            elif len(smallest_match_diffs) == 2:
-                smallest_display = f"{smallest_match_diffs[0]['display']} & {smallest_match_diffs[1]['display']}"
-                smallest_tooltip = None
-            else:
-                smallest_display = f"Multiple matches ({smallest_value}pt)"
-                smallest_tooltip = " / ".join([d['display'] for d in smallest_match_diffs])
+            # Smallest point differential (filter to smallest value, then pick highest total)
+            smallest_value = min(d['value'] for d in match_point_diffs_data)
+            smallest_candidates = sorted(
+                [d for d in match_point_diffs_data if d['value'] == smallest_value],
+                key=lambda x: x['total'],
+                reverse=True
+            )
+            smallest_entry = smallest_candidates[0]
+            smallest_display = smallest_entry['display']
+            smallest_tooltip = None
             
             match_extremes.append({
                 'type': 'Point Differential (Single match)',
@@ -852,21 +874,24 @@ def statistics(request):
                 'smallest_tooltip': smallest_tooltip,
             })
     
-    # Calculate 11-point and 21-point set counts
-    sets_11_point = 0
-    sets_21_point = 0
-    for s in all_sets:
-        winning_score = max(s.player_1_points, s.player_2_points)
-        if winning_score < 21:
-            sets_11_point += 1
-        else:
-            sets_21_point += 1
+    # Calculate 11-point and 21-point set counts (from database field, unfiltered for display)
+    all_sets_unfiltered = SquashSet.objects.filter(player_1_points__isnull=False, player_2_points__isnull=False)
+    sets_11_point = all_sets_unfiltered.filter(match__set_type='11').count()
+    sets_21_point = all_sets_unfiltered.filter(match__set_type='21').count()
+    
+    # Total sets and incomplete sets for current filter
+    total_sets = all_sets.count()
+    incomplete_sets = all_sets.filter(is_incomplete=True).count() if set_type_filter else 0
     
     context = {
         'total_matches': total_matches,
+        'total_sets': total_sets,
+        'incomplete_sets': incomplete_sets,
         'unique_players_count': unique_players_count,
         'sets_11_point': sets_11_point,
         'sets_21_point': sets_21_point,
+        'set_type_filter': set_type_filter,
+        'include_incomplete': include_incomplete,
         'player_performance_data': json.dumps(player_performance_data),
         'player_stats': player_stats,
         'player_box_data': json.dumps(player_box_data),

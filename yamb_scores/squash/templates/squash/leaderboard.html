@@ -2,6 +2,15 @@
 {% block content %}
   <h2>Leaderboard</h2>
 
+  <!-- Set Type Filter Toggle -->
+  <div style="margin-bottom: 1.5rem;">
+    <div style="display: inline-flex; border-radius: 4px; overflow: hidden; border: 1px solid #ddd;">
+      <a href="?" style="padding: 0.5rem 1rem; text-decoration: none; {% if not set_type_filter %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">Overall</a>
+      <a href="?set_type=11" style="padding: 0.5rem 1rem; text-decoration: none; border-left: 1px solid #ddd; {% if set_type_filter == '11' %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">11-point sets</a>
+      <a href="?set_type=21" style="padding: 0.5rem 1rem; text-decoration: none; border-left: 1px solid #ddd; {% if set_type_filter == '21' %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">21-point sets</a>
+    </div>
+  </div>
+
   <h3>Relative leaderboard</h3>
   <table>
     <thead>

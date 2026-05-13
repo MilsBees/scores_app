@@ -3,16 +3,35 @@
 {% block content %}
   <h2>Squash Statistics</h2>
 
+  <!-- Set Type Filter Toggle -->
+  <div style="margin-bottom: 1.5rem;">
+    <div style="display: inline-flex; border-radius: 4px; overflow: hidden; border: 1px solid #ddd;">
+      <a href="?" style="padding: 0.5rem 1rem; text-decoration: none; {% if not set_type_filter %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">Overall</a>
+      <a href="?set_type=11" style="padding: 0.5rem 1rem; text-decoration: none; border-left: 1px solid #ddd; {% if set_type_filter == '11' %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">11-point sets</a>
+      <a href="?set_type=21" style="padding: 0.5rem 1rem; text-decoration: none; border-left: 1px solid #ddd; {% if set_type_filter == '21' %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">21-point sets</a>
+    </div>
+  </div>
+
   <!-- Key Metrics -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
     <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #6c63ff;">
-      <div style="font-size: 0.9rem; color: #666;">Total Matches</div>
-      <div style="font-size: 2rem; font-weight: bold;">{{ total_matches }}</div>
-    </div>
-    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #6f42c1;">
       <div style="font-size: 0.9rem; color: #666;">Unique Players</div>
       <div style="font-size: 2rem; font-weight: bold;">{{ unique_players_count }}</div>
     </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #6f42c1;">
+      <div style="font-size: 0.9rem; color: #666;">Matches</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ total_matches }}</div>
+    </div>
+    {% if set_type_filter %}
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #17a2b8;">
+      <div style="font-size: 0.9rem; color: #666;">Sets</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ total_sets }}</div>
+    </div>
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #ffc107;">
+      <div style="font-size: 0.9rem; color: #666;">Incomplete Sets</div>
+      <div style="font-size: 2rem; font-weight: bold;">{{ incomplete_sets }}</div>
+    </div>
+    {% else %}
     <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 4px solid #17a2b8;">
       <div style="font-size: 0.9rem; color: #666;">11-point sets</div>
       <div style="font-size: 2rem; font-weight: bold;">{{ sets_11_point }}</div>
@@ -21,6 +40,7 @@
       <div style="font-size: 0.9rem; color: #666;">21-point sets</div>
       <div style="font-size: 2rem; font-weight: bold;">{{ sets_21_point }}</div>
     </div>
+    {% endif %}
   </div>
 
   <!-- Player Performance Summary -->
@@ -40,19 +60,43 @@
   </div>
 
   <!-- Player Statistics with Box Plots -->
+  {% if set_type_filter %}
   <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3>Player Performance - 11-point Sets</h3>
+    <h3>Player Performance - Points Distribution ({{ set_type_filter }}-point sets)</h3>
+    <div id="player-boxplot-chart" style="width: 100%;"></div>
+  </div>
+  {% else %}
+  <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3>Player Performance - Points Distribution (11-point sets)</h3>
     <div id="player-boxplot-11-chart" style="width: 100%;"></div>
   </div>
-
   <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3>Player Performance - 21-point Sets</h3>
+    <h3>Player Performance - Points Distribution (21-point sets)</h3>
     <div id="player-boxplot-21-chart" style="width: 100%;"></div>
   </div>
+  {% endif %}
 
   <!-- Match Extremes -->
   <div style="background: white; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3>Match Extremes</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <h3 style="margin: 0;">Match Extremes</h3>
+      <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #666; cursor: pointer;">
+        <input type="checkbox" id="include-incomplete-toggle" {% if include_incomplete %}checked{% endif %} onchange="toggleIncomplete()">
+        Include incomplete sets
+      </label>
+    </div>
+    <script>
+      function toggleIncomplete() {
+        const checkbox = document.getElementById('include-incomplete-toggle');
+        const url = new URL(window.location.href);
+        if (checkbox.checked) {
+          url.searchParams.set('include_incomplete', '1');
+        } else {
+          url.searchParams.delete('include_incomplete');
+        }
+        window.location.href = url.toString();
+      }
+    </script>
     {% if match_extremes %}
     <table style="width: 100%; border-collapse: collapse;">
       <thead>
@@ -214,9 +258,9 @@
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  const dataIndex = context.dataIndex;
-                  const date = dateLabels[dataIndex];
-                  const count = matchesByDate[date];
+                  const xValue = context.raw.x;  // Use actual x value, not dataIndex
+                  const date = dateLabels[xValue];
+                  const count = context.raw.y;
                   return date + ': ' + count + ' match' + (count !== 1 ? 'es' : '');
                 }
               }
@@ -259,7 +303,37 @@
       window.matchesTimelineChartInstance = matchesTimelineChart;
     }
 
-    // Player Box Plot - 11-point sets
+    // Player Box Plots
+    {% if set_type_filter %}
+    // Filtered view: single box plot
+    const playerBoxData = {{ player_box_data|safe }};
+    const playerNamesBox = Object.keys(playerBoxData);
+    
+    if (playerNamesBox.length > 0) {
+      const boxtraces = playerNamesBox.map(name => ({
+        y: playerBoxData[name],
+        name: name,
+        type: 'box',
+      }));
+
+      const boxLayout = {
+        title: 'Points Distribution by Player',
+        yaxis: {
+          zeroline: false,
+        },
+        height: 500,
+        margin: {
+          l: 50,
+          r: 50,
+          t: 50,
+          b: 50,
+        },
+      };
+
+      Plotly.newPlot('player-boxplot-chart', boxtraces, boxLayout, {responsive: true});
+    }
+    {% else %}
+    // Overall view: separate box plots for 11-point and 21-point sets
     const playerBoxData11 = {{ player_box_data_11|safe }};
     const playerNames11 = Object.keys(playerBoxData11);
     
@@ -271,7 +345,7 @@
       }));
 
       const boxLayout11 = {
-        title: 'Points Distribution by Player (Box Plot)',
+        title: 'Points Distribution by Player',
         yaxis: {
           zeroline: false,
         },
@@ -287,7 +361,6 @@
       Plotly.newPlot('player-boxplot-11-chart', boxtraces11, boxLayout11, {responsive: true});
     }
 
-    // Player Box Plot - 21-point sets
     const playerBoxData21 = {{ player_box_data_21|safe }};
     const playerNames21 = Object.keys(playerBoxData21);
     
@@ -299,7 +372,7 @@
       }));
 
       const boxLayout21 = {
-        title: 'Points Distribution by Player (Box Plot)',
+        title: 'Points Distribution by Player',
         yaxis: {
           zeroline: false,
         },
@@ -314,5 +387,6 @@
 
       Plotly.newPlot('player-boxplot-21-chart', boxtraces21, boxLayout21, {responsive: true});
     }
+    {% endif %}
   </script>
 {% endblock %}

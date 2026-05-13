@@ -2,9 +2,18 @@
 {% block content %}
   <h2>Head to Head</h2>
   
+  <!-- Set Type Filter Toggle -->
+  <div style="margin-bottom: 1.5rem;">
+    <div style="display: inline-flex; border-radius: 4px; overflow: hidden; border: 1px solid #ddd;">
+      <a href="?{% if selected_player %}player={{ selected_player.id }}{% endif %}" style="padding: 0.5rem 1rem; text-decoration: none; {% if not set_type_filter %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">Overall</a>
+      <a href="?{% if selected_player %}player={{ selected_player.id }}&{% endif %}set_type=11" style="padding: 0.5rem 1rem; text-decoration: none; border-left: 1px solid #ddd; {% if set_type_filter == '11' %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">11-point sets</a>
+      <a href="?{% if selected_player %}player={{ selected_player.id }}&{% endif %}set_type=21" style="padding: 0.5rem 1rem; text-decoration: none; border-left: 1px solid #ddd; {% if set_type_filter == '21' %}background: #6c63ff; color: white;{% else %}background: #f8f9fa; color: #333;{% endif %}">21-point sets</a>
+    </div>
+  </div>
+  
   <div class="card">
     <label for="player-select">Select player:</label>
-    <select id="player-select" onchange="window.location = '?player=' + this.value">
+    <select id="player-select" onchange="window.location = '?player=' + this.value + '{% if set_type_filter %}&set_type={{ set_type_filter }}{% endif %}'">
       <option value="">-- Choose a player --</option>
       {% for player in players %}
       <option value="{{ player.id }}" {% if selected_player.id == player.id %}selected{% endif %}>{{ player.name }}</option>

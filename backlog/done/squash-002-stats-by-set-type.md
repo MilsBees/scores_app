@@ -23,5 +23,7 @@
 
 <!--Testable done conditions; avoid implementation detail.-->
 
-- [ ] A user can toggle between Overall, 11-point sets and 21-point sets for the General Stats page
-- [ ] Changing your selection there updates all graphs to show only matches of that type
+- [x] A user can toggle between Overall, 11-point sets and 21-point sets for the General Stats page
+- [x] Changing your selection there updates all graphs to show only matches of that type
+- [x] A user can toggle between Overall, 11-point sets and 21-point sets on the Leaderboard page
+- [x] A user can toggle between Overall, 11-point sets and 21-point sets on the Head to Head page

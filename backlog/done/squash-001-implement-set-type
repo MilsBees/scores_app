@@ -25,6 +25,6 @@
 
 <!--Testable done conditions; avoid implementation detail.-->
 
-- [ ] A user can enter select match type when creating a new match or new session
-- [ ] A set is marked by incomplete if it falls under a match type but a player didn't reach the minimum score (i.e. 11 for an 11-point set or 21 for a 21-point set)
-- [ ] Fields are added to a Squash match (Set type and Complete/Incomplete)
+- [x] A user can enter select match type when creating a new match or new session
+- [x] A set is marked by incomplete if it falls under a match type but a player didn't reach the minimum score (i.e. 11 for an 11-point set or 21 for a 21-point set)
+- [x] Fields are added to a Squash match (Set type and Complete/Incomplete)
