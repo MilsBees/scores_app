@@ -571,7 +571,15 @@ def statistics(request):
     
     # Get all players with match counts
     players = SquashPlayer.objects.all().order_by('name')
-    unique_players_count = players.count()
+    
+    # Count unique players (filtered by set_type if specified)
+    if set_type_filter:
+        unique_players_count = SquashPlayer.objects.filter(
+            Q(squash_matches_as_p1__set_type=set_type_filter) |
+            Q(squash_matches_as_p2__set_type=set_type_filter)
+        ).distinct().count()
+    else:
+        unique_players_count = players.count()
     
     # Player performance stats - match/set/point win percentages
     player_performance_data = {}
