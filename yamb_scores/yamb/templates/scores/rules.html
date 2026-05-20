@@ -21,8 +21,11 @@
     <li><strong>Roll all 5 dice</strong> - This is your first roll</li>
     <li><strong>Keep or re-roll</strong> - Set aside any dice you want to keep and re-roll the rest</li>
     <li><strong>Roll again (optional)</strong> - You can roll up to 3 times total per turn</li>
-    <li><strong>Fill in your scoresheet</strong> - Choose a cell to write your score based on the column rules</li>
+    <li><strong>Fill in your scoresheet</strong> - Choose a cell to write your score based on the column rules.</li>
   </ol>
+    <p style="margin-top: 1rem; font-style: italic; color: #666;">
+    <strong>Note:</strong> You may elect to fill in a cell for which you do not meet the criteria, for example by filling in the square for a straight when you did not roll a straight. In this case, fill in 0.
+  </p>
 </div>
 
 <h3>The Scoresheet</h3>
@@ -64,50 +67,55 @@
 
 <h4 style="margin-top: 1.5rem;">Number Rows (1-6)</h4>
 <div class="card">
-  <table style="width: 100%; border-collapse: collapse;">
+  <p>For each number row, write down how many dice show that number in each column. The target is <strong>12 total</strong> across all 4 columns (i.e., 3 per column on average). You score points for each die above or below this target.</p>
+  
+  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
     <thead>
       <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
         <th style="padding: 0.75rem; text-align: left; width: 80px;">Row</th>
-        <th style="padding: 0.75rem; text-align: left;">Scoring</th>
-        <th style="padding: 0.75rem; text-align: left; width: 150px;">Multiplier</th>
+        <th style="padding: 0.75rem; text-align: left;">Points per die over/under 12</th>
       </tr>
     </thead>
     <tbody>
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 0.75rem; font-weight: bold;">1s</td>
-        <td style="padding: 0.75rem;">Count of dice showing 1</td>
-        <td style="padding: 0.75rem;">×10</td>
+        <td style="padding: 0.75rem;">±10 points</td>
       </tr>
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 0.75rem; font-weight: bold;">2s</td>
-        <td style="padding: 0.75rem;">Count of dice showing 2</td>
-        <td style="padding: 0.75rem;">×20</td>
+        <td style="padding: 0.75rem;">±20 points</td>
       </tr>
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 0.75rem; font-weight: bold;">3s</td>
-        <td style="padding: 0.75rem;">Count of dice showing 3</td>
-        <td style="padding: 0.75rem;">×30</td>
+        <td style="padding: 0.75rem;">±30 points</td>
       </tr>
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 0.75rem; font-weight: bold;">4s</td>
-        <td style="padding: 0.75rem;">Count of dice showing 4</td>
-        <td style="padding: 0.75rem;">×40</td>
+        <td style="padding: 0.75rem;">±40 points</td>
       </tr>
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 0.75rem; font-weight: bold;">5s</td>
-        <td style="padding: 0.75rem;">Count of dice showing 5</td>
-        <td style="padding: 0.75rem;">×50</td>
+        <td style="padding: 0.75rem;">±50 points</td>
       </tr>
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 0.75rem; font-weight: bold;">6s</td>
-        <td style="padding: 0.75rem;">Count of dice showing 6</td>
-        <td style="padding: 0.75rem;">×60</td>
+        <td style="padding: 0.75rem;">±60 points</td>
       </tr>
     </tbody>
   </table>
-  <p style="margin-top: 1rem; font-style: italic; color: #666;">
-    <strong>Row total:</strong> (sum of all 4 columns - 12) × multiplier. The target is 3 per column (12 total = 0 points). Example for row 3: if you roll 4+3+2+3 = 12 → 0 points. If you roll 4+4+3+4 = 15 → (15-12) × 30 = +90 points.
-  </p>
+  
+  <p style="margin-top: 1rem;"><strong>Examples for 1s row:</strong></p>
+  <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #555;">
+    <li>You rolled 3+3+3+3 = 12 ones → exactly 12, so <strong>0 points</strong></li>
+    <li>You rolled 4+4+4+4 = 16 ones → 4 over, so 4 × 10 = <strong>+40 points</strong></li>
+    <li>You rolled 2+2+3+2 = 9 ones → 3 under, so 3 × 10 = <strong>-30 points</strong></li>
+  </ul>
+  
+  <p style="margin-top: 0.75rem;"><strong>Example for 3s row:</strong></p>
+  <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #555;">
+    <li>You rolled 4+3+2+3 = 12 threes → exactly 12, so <strong>0 points</strong></li>
+    <li>You rolled 4+4+3+4 = 15 threes → 3 over, so 3 × 30 = <strong>+90 points</strong></li>
+  </ul>
 </div>
 
 <h4 style="margin-top: 1.5rem;">High/Low Rows</h4>
@@ -128,13 +136,16 @@
       </tr>
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 0.75rem; font-weight: bold;">L (Low)</td>
-        <td style="padding: 0.75rem;">Aim for the lowest total (must be lower than H)</td>
-        <td style="padding: 0.75rem;">Sum of all 5 dice (min 5)</td>
+        <td style="padding: 0.75rem;">Aim for the highest total (must be lower than H)</td>
+        <td style="padding: 0.75rem;">Sum of all 5 dice (max 29)</td>
       </tr>
     </tbody>
   </table>
   <p style="margin-top: 1rem; font-style: italic; color: #666;">
-    <strong>Bonus:</strong> If H + L ≥ 50 in a column, you get +30 bonus points for that column.
+    <strong>Bonus:</strong> If H + L ≥ 50 in a column, you get +30 bonus points for that column. Note that in the scroresheet, any bonus points will be added in the total column at the end.
+  </p>
+  <p style="margin-top: 0.75rem; font-style: italic; color: #666;">
+    <strong>Special case:</strong> If you fill in one of H or L in a column but then can't roll a valid value for the other (i.e., you can't roll higher than L or lower than H), you must change your first entry to 0 and also fill the other with 0.
   </p>
 </div>
 
@@ -172,7 +183,7 @@
     </tbody>
   </table>
   <p style="margin-top: 1rem; font-style: italic; color: #666;">
-    If you don't achieve the required combination, you must write 0 for that row.
+    If you don't achieve the required combination, you must write 0 for that cell.
   </p>
 </div>
 
