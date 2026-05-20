@@ -10,6 +10,86 @@ document.addEventListener('DOMContentLoaded', function() {
     return; // Not on the scoresheet form page
   }
   
+  // Row order from top to bottom
+  const ROW_ORDER = ['1', '2', '3', '4', '5', '6', 'h', 'l', 'fh', 'c', 's', 'p'];
+  
+  // Enforce column fill order for Down (top to bottom) and Up (bottom to top) columns
+  function enforceColumnOrder(wrapper) {
+    const prefix = wrapper.querySelector('input[name*="row_1_down"]')?.name.split('-row_1_down')[0];
+    if (!prefix) return;
+    
+    // Down column: must fill from top to bottom
+    let foundEmpty = false;
+    ROW_ORDER.forEach(row => {
+      const field = wrapper.querySelector(`input[name="${prefix}-row_${row}_down"]`);
+      if (!field) return;
+      
+      if (foundEmpty) {
+        // This cell comes after an empty cell, so disable it
+        field.disabled = true;
+        field.style.backgroundColor = '#f0f0f0';
+        field.style.cursor = 'not-allowed';
+      } else if (field.value.trim() === '') {
+        // First empty cell - this one should be editable
+        field.disabled = false;
+        field.style.backgroundColor = '';
+        field.style.cursor = '';
+        foundEmpty = true;
+      } else {
+        // Filled cell - keep it editable (allow corrections)
+        field.disabled = false;
+        field.style.backgroundColor = '';
+        field.style.cursor = '';
+      }
+    });
+    
+    // Up column: must fill from bottom to top
+    foundEmpty = false;
+    [...ROW_ORDER].reverse().forEach(row => {
+      const field = wrapper.querySelector(`input[name="${prefix}-row_${row}_up"]`);
+      if (!field) return;
+      
+      if (foundEmpty) {
+        // This cell comes before an empty cell (going up), so disable it
+        field.disabled = true;
+        field.style.backgroundColor = '#f0f0f0';
+        field.style.cursor = 'not-allowed';
+      } else if (field.value.trim() === '') {
+        // First empty cell from bottom - this one should be editable
+        field.disabled = false;
+        field.style.backgroundColor = '';
+        field.style.cursor = '';
+        foundEmpty = true;
+      } else {
+        // Filled cell - keep it editable (allow corrections)
+        field.disabled = false;
+        field.style.backgroundColor = '';
+        field.style.cursor = '';
+      }
+    });
+  }
+  
+  // Attach listeners for column order enforcement
+  function attachColumnOrderListeners(wrapper) {
+    const prefix = wrapper.querySelector('input[name*="row_1_down"]')?.name.split('-row_1_down')[0];
+    if (!prefix) return;
+    
+    ROW_ORDER.forEach(row => {
+      const downField = wrapper.querySelector(`input[name="${prefix}-row_${row}_down"]`);
+      const upField = wrapper.querySelector(`input[name="${prefix}-row_${row}_up"]`);
+      
+      if (downField) {
+        downField.addEventListener('input', () => enforceColumnOrder(wrapper));
+      }
+      if (upField) {
+        upField.addEventListener('input', () => enforceColumnOrder(wrapper));
+      }
+    });
+    
+    // Initial enforcement
+    enforceColumnOrder(wrapper);
+  }
+  
   // Populate the initial form's player select with all options from data attribute
   const playersData = container?.getAttribute('data-player-options');
   if (playersData) {
@@ -1305,6 +1385,7 @@ document.addEventListener('DOMContentLoaded', function() {
     attachRowSListeners(newWrapper);
     attachRowPListeners(newWrapper);
     attachNewPlayerPromptListener(newWrapper);
+    attachColumnOrderListeners(newWrapper);
   });
   
   // Attach remove handlers to existing X buttons
@@ -1327,5 +1408,6 @@ document.addEventListener('DOMContentLoaded', function() {
     attachRowSListeners(wrapper);
     attachRowPListeners(wrapper);
     attachNewPlayerPromptListener(wrapper);
+    attachColumnOrderListeners(wrapper);
   });
 });
