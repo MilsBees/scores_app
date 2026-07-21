@@ -51,6 +51,7 @@ The goal is to use multiple specialized agents with explicit review gates so cha
 - Outputs: execution slices, dependency map, definition of done per slice.
 - Checks by others: challenged by Architecture Agent and Risk Agent.
 - My notes: You are free to suggest new backlog items especially when it comes to backend things. 
+- Additional workflow rule: All requests are owned first by Planning + Product Manager for intake, scope, and backlog triage before any implementation starts.
 
 ### 2) Architecture and Refactor Agent
 - Focus: code structure, module boundaries, maintainability decisions.
@@ -99,6 +100,7 @@ The goal is to use multiple specialized agents with explicit review gates so cha
 - Inputs: Checking with me (the primary stakeholder) to see if we are remaining on task and focused. 
 - Outputs: Ensuring all other agents are doing what they should be doing.
 - Checks by others: Each other agent may have push back on the product manager to ensure minimal mistakes. That way we have an extra level of insurance that we are staying on track and following our objectives. 
+- Additional workflow rule: For every request, Product Manager first confirms backlog coverage. If no suitable item exists, Product Manager asks Planning Agent to create one before Implementation Agent starts coding.
 
 ---
 
@@ -109,6 +111,7 @@ The goal is to use multiple specialized agents with explicit review gates so cha
 2. No data model/auth change proceeds without Security Agent review.
 3. No slice is considered done without Reviewer Agent findings resolved or explicitly accepted.
 4. No merge-ready status without Verification Agent test and rollback checklist.
+5. All requests must go through Planning + Product Manager intake and backlog triage before any implementation proposal.
 
 ### Conflict Resolution
 1. If two agents disagree, capture the decision in the Decision Log.

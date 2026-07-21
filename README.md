@@ -84,3 +84,4 @@ python manage.py runserver
 - If you have other ideas, feel free to add them to the backlog
 - Create a merge request for whatever you have added
 - If you notice something missing in this file to get it working locally, please update the readme accordingly!
+- Start all requests with Planning + Product Manager agent intake and backlog triage before any implementation work.
