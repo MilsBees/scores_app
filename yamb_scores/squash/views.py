@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.http import JsonResponse
 from datetime import datetime, timedelta, date
 from .models import SquashMatch, SquashSet, SquashPlayer, SquashSession
+from .services.stats import get_leaderboard_stats
 from .forms import (
     SquashMatchForm,
     SquashSessionForm,
@@ -171,105 +172,7 @@ def leaderboard(request):
     if rel_dir not in {"asc", "desc"}:
         rel_dir = "desc"
 
-    players = SquashPlayer.objects.all()
-    
-    player_stats = []
-    for player in players:
-        # Matches where player participated
-        matches = SquashMatch.objects.filter(Q(player_1=player) | Q(player_2=player))
-        if set_type_filter:
-            matches = matches.filter(set_type=set_type_filter)
-        
-        # Base queryset for sets, filtered by set_type if specified
-        sets_as_p1 = SquashSet.objects.filter(match__player_1=player)
-        sets_as_p2 = SquashSet.objects.filter(match__player_2=player)
-        if set_type_filter:
-            sets_as_p1 = sets_as_p1.filter(match__set_type=set_type_filter)
-            sets_as_p2 = sets_as_p2.filter(match__set_type=set_type_filter)
-        
-        # Total points for / against
-        points_for_as_p1 = sets_as_p1.aggregate(Sum("player_1_points"))["player_1_points__sum"] or 0
-        points_for_as_p2 = sets_as_p2.aggregate(Sum("player_2_points"))["player_2_points__sum"] or 0
-        points_against_as_p1 = sets_as_p1.aggregate(Sum("player_2_points"))["player_2_points__sum"] or 0
-        points_against_as_p2 = sets_as_p2.aggregate(Sum("player_1_points"))["player_1_points__sum"] or 0
-
-        points_for = points_for_as_p1 + points_for_as_p2
-        points_against = points_against_as_p1 + points_against_as_p2
-        total_points = points_for
-        points_total = points_for + points_against
-        point_win_pct = (points_for / points_total * 100.0) if points_total > 0 else 0.0
-        
-        # Total sets won (using filtered querysets)
-        sets_won_as_p1 = sets_as_p1.filter(player_1_points__gt=F('player_2_points')).count()
-        sets_won_as_p2 = sets_as_p2.filter(player_2_points__gt=F('player_1_points')).count()
-        total_sets_won = sets_won_as_p1 + sets_won_as_p2
-
-        sets_lost_as_p1 = sets_as_p1.filter(player_1_points__lt=F("player_2_points")).count()
-        sets_lost_as_p2 = sets_as_p2.filter(player_2_points__lt=F("player_1_points")).count()
-        total_sets_lost = sets_lost_as_p1 + sets_lost_as_p2
-        
-        # Total sets played
-        all_player_sets = SquashSet.objects.filter(Q(match__player_1=player) | Q(match__player_2=player))
-        if set_type_filter:
-            all_player_sets = all_player_sets.filter(match__set_type=set_type_filter)
-        total_sets = all_player_sets.count()
-        set_win_pct = (total_sets_won / total_sets * 100.0) if total_sets > 0 else 0.0
-        
-        # Last match date
-        last_match = matches.order_by('-date_played').first()
-        last_match_date = last_match.date_played if last_match else None
-        
-        # Match record (W-L-D)
-        matches_won = 0
-        matches_lost = 0
-        matches_drawn = 0
-        
-        for match in matches:
-            sets = match.sets.all()
-            
-            if match.player_1 == player:
-                sets_won = sum(1 for s in sets if s.player_1_points > s.player_2_points)
-                sets_lost = sum(1 for s in sets if s.player_2_points > s.player_1_points)
-            else:
-                sets_won = sum(1 for s in sets if s.player_2_points > s.player_1_points)
-                sets_lost = sum(1 for s in sets if s.player_1_points > s.player_2_points)
-            
-            if sets_won > sets_lost:
-                matches_won += 1
-            elif sets_lost > sets_won:
-                matches_lost += 1
-            else:
-                matches_drawn += 1
-
-        matches_played = matches_won + matches_lost + matches_drawn
-        # Spec: draws are not wins; win% is wins / played.
-        match_win_pct = (matches_won / matches_played * 100.0) if matches_played > 0 else 0.0
-        
-        if total_sets > 0:  # Only include players with matches
-            player_stats.append({
-                'player': player,
-                'points_for': points_for,
-                'points_against': points_against,
-                'points_total': points_total,
-                'point_diff': points_for - points_against,
-                'point_win_pct': point_win_pct,
-                'total_sets_won': total_sets_won,
-                'total_sets': total_sets,
-                'total_sets_lost': total_sets_lost,
-                'set_win_pct': set_win_pct,
-                'last_match_date': last_match_date,
-                'matches_won': matches_won,
-                'matches_lost': matches_lost,
-                'matches_drawn': matches_drawn,
-                'matches_played': matches_played,
-                'match_win_pct': match_win_pct,
-            })
-
-    def _date_key(stat):
-        return stat["last_match_date"]
-
-    relative_stats = list(player_stats)
-    absolute_stats = list(player_stats)
+    relative_stats, absolute_stats = get_leaderboard_stats(set_type_filter=set_type_filter)
 
     # Relative sorting (primary table)
     rel_reverse = rel_dir == "desc"
@@ -289,11 +192,23 @@ def leaderboard(request):
     # Absolute sorting (legacy table)
     abs_reverse = abs_dir == "desc"
     if abs_sort == "last_match_date":
-        # Sort with None-safe behavior
+        # Sort by date direction while keeping missing dates at the end.
         if abs_reverse:
-            absolute_stats.sort(key=lambda s: (s["last_match_date"] is None, s["last_match_date"]), reverse=False)
+            absolute_stats.sort(
+                key=lambda s: (
+                    s["last_match_date"] is not None,
+                    s["last_match_date"] or date.min,
+                ),
+                reverse=True,
+            )
         else:
-            absolute_stats.sort(key=lambda s: (s["last_match_date"] is not None, s["last_match_date"]), reverse=False)
+            absolute_stats.sort(
+                key=lambda s: (
+                    s["last_match_date"] is None,
+                    s["last_match_date"] or date.min,
+                ),
+                reverse=False,
+            )
     else:
         absolute_stats.sort(key=lambda s: s.get(abs_sort, 0), reverse=abs_reverse)
 

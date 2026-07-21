@@ -6,16 +6,17 @@
 
 **Goal:** Clean, testable service layer across all three apps. Fixes performance bottlenecks.
 
-#### Slice 1: Squash Leaderboard Query Optimization (CURRENT)
+#### Slice 1: Squash Leaderboard Query Optimization
 - **Work Days:** 3-4 days
 - **What You're Doing:** Extract leaderboard stats into service, add tests, verify query count drops 90%
-- **Status:** Ready to start ✅
+- **Status:** Completed ✅
 - **Blocker:** None
+- **Outcome:** Service extraction complete, tests added, query count target met, last-match sorting bug fixed with regression tests.
 
-#### Slice 2: Squash Full Views Refactor
+#### Slice 2: Squash Full Views Refactor (CURRENT)
 - **Work Days:** 8-10 days
 - **What You're Doing:** Split `views.py` into matches/players/statistics/h2h files. Extract all calculations into services.
-- **Status:** Blocked until Slice 1 done (pattern established)
+- **Status:** Ready to start ✅
 - **Dependency:** Slice 1 complete + Reviewer Agent sign-off
 
 #### Slice 3: Yamb Views Refactor
@@ -188,32 +189,61 @@ No matter how long the gap (days, weeks, months), resuming is simple:
 ### Risk: "What if code breaks between sessions?"
 **Mitigation:** Verification Agent tests all code before merge. Git branches isolate broken code. Rollback is one command.
 
+### Risk: "Estimates were too conservative for Slice 1"
+**Mitigation:** Track actuals per slice and recalibrate estimates after Slice 2 planning using confidence bands.
+
 ---
 
-## Next Session: Getting Started on Slice 1
+## Next Session: Planning Slice 2
 
-When you return, use this prompt to resume implementation:
+When you return, start with this Planner Agent prompt:
 
 ```
-You are the Implementation Agent. You're beginning Slice 1: Squash Leaderboard Query Optimization.
+You are the Planner Agent.
 
-Read the delivery plan at backlog/plan/plan.md and ROADMAP.md for context.
-Focus on Slice 1 acceptance criteria:
-- Extract statistics calculations from squash/leaderboard view into squash/services/stats.py
-- Function: get_leaderboard_stats(set_type_filter=None) returns relative_stats + absolute_stats
-- Use prefetch_related/select_related (verify query count: current ~150-500 → target ≤15)
-- Add unit tests: ≥80% coverage
-- Backward-compatible: views/__init__.py re-exports old function names
+Read:
+- backlog/plan/plan.md
+- backlog/plan/ROADMAP.md
+- backlog/to-do/shared-001-refactor-python-code.md
 
-Your first task: 
-1. Analyze current squash/views.py leaderboard function (lines 134-200)
-2. Extract the calculation logic into squash/services/stats.py
-3. Create get_leaderboard_stats() function
-4. Update leaderboard view to call this function
-5. Run Django shell to verify query count drops
+Context:
+- Slice 1 is completed (leaderboard service extraction + tests + sorting regression fix)
+- Slice 2 is now active: Squash Full Views Refactor
+- Current hotspot: squash/views.py remains large and multi-responsibility
 
-Work in small, reviewable commits. When done with this step, request Reviewer Agent feedback.
+Your task is to produce the Slice 2 execution plan with:
+1. Phase-by-phase module split plan for squash views:
+  - views/matches.py
+  - views/players.py
+  - views/leaderboard.py
+  - views/h2h.py
+  - views/statistics.py
+  - views/__init__.py re-exports for urls.py compatibility
+2. Service-extraction map: what logic moves now vs later
+3. Acceptance criteria per phase (testable)
+4. Risk controls:
+  - backward compatibility
+  - rollback approach
+  - reviewer and verification gates
+5. Small, reviewable commit boundaries
+6. Re-estimated effort for Slice 2 (optimistic/likely/conservative)
+
+Output format:
+- Phase table (phase, files, acceptance checks, risks)
+- Commit sequence
+- Test plan per phase
+- Go/no-go checklist for Reviewer + Verification/Release Agent
 ```
+
+### Next Session Runbook (Step-by-Step)
+
+1. Product Manager confirms Slice 1 closure and opens Slice 2.
+2. Run the Planner Agent prompt above.
+3. Review Planner output and approve phases/commit boundaries.
+4. Start Implementation Agent on Phase 1 only.
+5. Request Reviewer Agent feedback before moving to Phase 2.
+6. After implementation phases, request Verification & Release Agent checklist.
+7. PM decides whether to release immediately or batch with the next validated slice.
 
 ---
 
@@ -224,5 +254,6 @@ Work in small, reviewable commits. When done with this step, request Reviewer Ag
 - [x] All 10 slices defined with work day estimates
 - [x] Phase 1 + Phase 2 totals calculated
 - [x] Risk mitigations documented
-- [ ] Next session prompt ready (copy the prompt above when returning)
-- [ ] Approve this roadmap and begin Slice 1 on your next session
+- [x] Next session prompt ready (copy the prompt above when returning)
+- [x] Slice 1 completed and reviewed
+- [ ] Begin Slice 2 planning on your next session

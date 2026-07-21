@@ -261,10 +261,62 @@ Use the existing codebase (yamb, squash, sjoelen apps) to inform your analysis.
 
 ---
 
+## Current Delivery Status (PM Update)
+
+### Slice 1 Status: Completed
+
+Completed outcomes:
+- Leaderboard statistics extracted to `squash/services/stats.py`
+- Leaderboard view calls the extracted service
+- Query count validated below target (<=15 target, measured lower)
+- Unit tests added for service behavior and query count
+- Regression fix added for "Last match" sorting and covered by view tests
+
+### Next Active Slice: Slice 2
+
+Slice 2 remains the next priority:
+- Split `squash/views.py` into focused modules
+- Continue extracting calculation logic into services
+- Preserve URL compatibility via `views/__init__.py` re-exports
+
+### Effort Estimation Note
+
+- Slice 1 was completed faster than the original estimate.
+- Do not fully re-estimate all slices from one data point.
+- Recalibrate estimates after Slice 2 planning with confidence ranges (optimistic / likely / conservative).
+
+---
+
+## Agent Handoff Order (Per Slice)
+
+1. **Product Manager Agent**: confirms slice scope and success criteria
+2. **Planning Agent**: produces implementation phases and test gates
+3. **Implementation Agent**: executes phases in small commits
+4. **Reviewer Agent**: independent findings and sign-off
+5. **Verification & Release Agent**: go/no-go + rollback checklist
+6. **Product Manager Agent**: final release decision
+
+---
+
+## Release Decision Policy
+
+Because downtime is non-negotiable, each completed slice follows this decision:
+
+1. **Commit + push after reviewer sign-off**
+2. **Run Verification & Release Agent checklist**
+3. **Release only after PM approval**
+4. **If uncertain, defer release and batch with next validated slice**
+
+For Slice 1 specifically:
+- Commit/push is appropriate now.
+- Production release is allowed only after Verification & Release Agent go/no-go and PM approval.
+
+---
+
 ## Ready to Begin Implementation
 
 - [x] All planning complete
-- [x] Slice 1 approved and ready
+- [x] Slice 1 approved and implemented
 - [x] Roadmap finalized with work day estimates
 - [x] Next session prompt prepared in ROADMAP.md
-- [ ] Begin Slice 1 in next session (use prompt from ROADMAP.md)
+- [ ] Begin Slice 2 planning in next session (use prompt from ROADMAP.md)
