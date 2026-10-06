@@ -29,3 +29,9 @@
 - [ ] Filter toggles update charts without full page reload (using AJAX)
 - [ ] Statistics page loads noticeably faster
 - [ ] Consider caching expensive calculations or using database aggregations instead of Python loops
+
+### Planning Agent Note (Future Slice)
+
+- During refactor slices for each app, profile per-page queries first (query count + timing) before and after changes.
+- Evaluate using Django Debug Toolbar first, with Django Silk as an optional deeper profiling follow-up.
+- Capture and compare baseline vs. post-refactor query metrics for key statistics pages.

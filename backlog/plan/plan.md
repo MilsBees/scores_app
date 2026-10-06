@@ -156,7 +156,11 @@ The goal is to use multiple specialized agents with explicit review gates so cha
 - Decision 007: Performance baseline on stats pages is first critical task; Planning Agent will create backlog items to address bottlenecks.
 - Decision 008: Start with unit tests; integration tests deferred to later stage.
 - Decision 009: Prefer strict cutover on auth migration if low-risk; Planning Agent to assess and recommend.
-- Decision 010: Session recaps provided in chat (not as files) for sporadic work pattern. 
+- Decision 010: Session recaps and execution details are stored in temporary per-slice files under `backlog/plan/slices/` while a slice is active.
+- Decision 011: After every phase execution or gate output, update both `backlog/plan/ROADMAP.md` and the active `backlog/plan/slices/*-execution-temp.md` in the same turn.
+- Decision 012: If status, next action, or next prompt changes, the session is not complete until both files show the same state.
+- Decision 013: Keep current file names for Slice 2 continuity, then run a naming cleanup decision for planning docs (clear, role-based names) before Slice 3 starts.
+- Decision 014: The canonical execution protocol is `backlog/plan/WAY_OF_WORKING.md`; every turn must end with exactly one immediate action: `PROMPT` or `DECISION`.
 
 ---
 
@@ -167,7 +171,7 @@ The goal is to use multiple specialized agents with explicit review gates so cha
 3. **Performance baseline**: Yes, measure stats pages now (baseline before refactor). Planning Agent to create backlog items for identified bottlenecks, reviewed by PM.
 4. **Test strategy**: Start with unit tests (models/services). Integration tests deferred to later stage.
 5. **Migration layers**: Preference is strict cutover on auth rollout, but Planning Agent should assess risk and recommend safeguards (e.g., rollback safety, feature flags).
-6. **Sporadic work**: Session recaps provided in chat at session start (not as files in repo).
+6. **Sporadic work**: Session recaps and current execution state live in temporary per-slice files so future agents can resume quickly.
 7. **Measurement**: Agents to suggest key metrics (beyond test coverage and query speed). PM to approve. 
 
 ---
@@ -197,107 +201,29 @@ Use this at the start of each work session:
 
 ---
 
-## Planning Agent Kickoff Task
+## Planner Prompt Source of Truth
 
-The Planning Agent's first job is to produce the **Execution Plan** that breaks this delivery plan into concrete, sequenced slices ready for implementation.
+- Use `backlog/plan/ROADMAP.md` as the canonical source for the active Planner Agent prompt.
+- Historical prompt variants are intentionally removed from this file to avoid drift.
+- Keep this document stable and strategic.
+- Keep per-slice execution details in temporary files under `backlog/plan/slices/`.
+- The single immediate next prompt to send must live in `backlog/plan/ROADMAP.md` and be mirrored in the active slice temp file.
+- Chat is not a source-of-truth record for next prompts.
+- Mandatory sync rule: when `backlog/plan/ROADMAP.md` changes in Current Session State, Next Action Required, or Next Prompt To Send, the active slice temp file must be updated in the same turn.
 
-### What Planning Agent Must Deliver:
+## Definitive Way of Working
 
-1. **Refactor Order Analysis** (3 options with pros/cons):
-   - Option A: Backend refactor first (views → services), then auth, then frontend
-   - Option B: Auth first (establishes permissions model), then backend refactor, then frontend
-   - Option C: Frontend baseline first (measure current perf), then auth, then backend refactor
-   - Include: timeline estimate, risk level, dependencies, and rollback complexity for each
-
-2. **Performance Baseline Report**:
-   - Measure current response times on: squash leaderboard, squash statistics, sjoelen statistics, yamb game list
-   - Identify root cause of slowness: database queries, template rendering, frontend rendering, or all three
-   - Prioritize: which pages need fixing most urgently
-
-3. **Initial Backlog Items** (from performance baseline):
-   - Create 3-5 new backlog items for identified performance issues
-   - Each item includes: acceptance criteria, estimated complexity, blocker dependencies
-   - Sequenced in refactor order chosen by PM
-
-4. **Execution Slice 1** (First actionable slice):
-   - Definition of done (testable acceptance criteria)
-   - Success criteria (specific, measurable outcomes)
-   - Dependencies on other slices (if any)
-   - Suggested zero-downtime strategy (blue-green, feature flag, or backward-compatible)
-
-### When to Start Planning Agent:
-
-Write a chat prompt that invokes Planning Agent and includes this plan document. Example structure:
-
-```
-You are the Planning Agent. Read the attached Delivery Plan document, which includes:
-- Requirements, objectives, and constraints from the Product Manager
-- Decision Log with priorities (safety-first, zero-downtime mandatory)
-- Resolved questions about refactor order, performance baseline, and test strategy
-
-Your first task is to analyze the app and produce:
-1. Three refactor order options (backend-first, auth-first, frontend-first) with pros/cons
-2. Performance baseline report (measure slow pages, identify root causes)
-3. Create 3-5 new backlog items for performance fixes
-4. Define Execution Slice 1 with acceptance criteria and zero-downtime strategy
-
-Refer to the backlog items in shared-001-refactor-python-code.md for refactor context.
-Use the existing codebase (yamb, squash, sjoelen apps) to inform your analysis.
-```
-
----
-
-## Execution Plan & Roadmap
-
-**Planning Agent has delivered:**
-
-1. ✅ **Refactor Order Analysis** → Chose **Option A: Backend-First** (safest, aligns with refactor backlog)
-2. ✅ **Performance Baseline Report** → Root causes identified
-3. ✅ **Initial Backlog Items** → 5 items (Backend-001/002/003, Frontend-001, Auth-001)
-4. ✅ **Execution Slice 1** → Squash Leaderboard Query Optimization approved
-5. ✅ **Full Roadmap** → See [ROADMAP.md](ROADMAP.md)
-
-**Key Updates to Roadmap:**
-- Reordered: Squash → Yamb → Sjoelen (by priority)
-- Removed calendar dates (work days only)
-- Ready for next session: see "Next Session" section in ROADMAP.md
-
----
-
-## Current Delivery Status (PM Update)
-
-### Slice 1 Status: Completed
-
-Completed outcomes:
-- Leaderboard statistics extracted to `squash/services/stats.py`
-- Leaderboard view calls the extracted service
-- Query count validated below target (<=15 target, measured lower)
-- Unit tests added for service behavior and query count
-- Regression fix added for "Last match" sorting and covered by view tests
-
-### Next Active Slice: Slice 2
-
-Slice 2 remains the next priority:
-- Split `squash/views.py` into focused modules
-- Continue extracting calculation logic into services
-- Preserve URL compatibility via `views/__init__.py` re-exports
-
-### Effort Estimation Note
-
-- Slice 1 was completed faster than the original estimate.
-- Do not fully re-estimate all slices from one data point.
-- Recalibrate estimates after Slice 2 planning with confidence ranges (optimistic / likely / conservative).
+- See `backlog/plan/WAY_OF_WORKING.md` for the mandatory operating protocol.
+- This includes the non-negotiable handoff rule: every completed turn must leave one immediate next action (`PROMPT` or `DECISION`) and never neither.
 
 ---
 
 ## Agent Handoff Order (Per Slice)
 
-1. **Product Manager Agent**: confirms slice scope and success criteria
-2. **Planning Agent**: produces implementation phases and test gates
-3. **Implementation Agent**: executes phases in small commits
-4. **Reviewer Agent**: independent findings and sign-off
-5. **Verification & Release Agent**: go/no-go + rollback checklist
-6. **Product Manager Agent**: final release decision
+This section is intentionally non-authoritative.
+
+- Canonical chain source: `backlog/plan/WAY_OF_WORKING.md` (`Canonical Handoff Chain (Authoritative)`).
+- If this file and `WAY_OF_WORKING.md` diverge, `WAY_OF_WORKING.md` always wins.
 
 ---
 
@@ -309,17 +235,3 @@ Because downtime is non-negotiable, each completed slice follows this decision:
 2. **Run Verification & Release Agent checklist**
 3. **Release only after PM approval**
 4. **If uncertain, defer release and batch with next validated slice**
-
-For Slice 1 specifically:
-- Commit/push is appropriate now.
-- Production release is allowed only after Verification & Release Agent go/no-go and PM approval.
-
----
-
-## Ready to Begin Implementation
-
-- [x] All planning complete
-- [x] Slice 1 approved and implemented
-- [x] Roadmap finalized with work day estimates
-- [x] Next session prompt prepared in ROADMAP.md
-- [ ] Begin Slice 2 planning in next session (use prompt from ROADMAP.md)
