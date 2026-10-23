@@ -1,12 +1,46 @@
 from django.test import TestCase
-from django.urls import reverse
+from django.urls import resolve, reverse
 
+from squash import urls as squash_urls
+from squash import views
 from squash.models import SquashPlayer
 
 
 class SquashRouteSmokeTests(TestCase):
     def setUp(self):
         self.player = SquashPlayer.objects.create(name="Route Player")
+
+    def test_named_routes_resolve_to_all_view_exports(self):
+        route_kwargs = {
+            "index": None,
+            "new_match": None,
+            "new_session": None,
+            "match_list": None,
+            "leaderboard": None,
+            "h2h": None,
+            "statistics": None,
+            "player_list": None,
+            "new_player": None,
+            "edit_player": {"pk": self.player.pk},
+            "delete_player": {"pk": self.player.pk},
+        }
+        expected_names = set(route_kwargs)
+        url_patterns = squash_urls.urlpatterns
+        url_callables = {pattern.callback for pattern in url_patterns}
+        exported_callables = {getattr(views, name) for name in expected_names}
+
+        self.assertEqual({pattern.name for pattern in url_patterns}, expected_names)
+        self.assertEqual(len(url_callables), 11)
+        self.assertEqual(url_callables, exported_callables)
+
+        for name, kwargs in route_kwargs.items():
+            with self.subTest(route=name):
+                view = getattr(views, name)
+                self.assertTrue(callable(view))
+                route = reverse(f"squash:{name}", kwargs=kwargs)
+                match = resolve(route)
+                self.assertEqual(match.view_name, f"squash:{name}")
+                self.assertIs(match.func, view)
 
     def test_all_squash_get_routes_are_reachable(self):
         routes = [

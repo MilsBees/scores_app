@@ -21,10 +21,17 @@
 - Auth and Domain Model: N/A for Phase 1 model/auth changes; GO to Security and Permissions assessment (2026-10-15)
 - Security and Permissions: reported pre-existing anonymous-write risk; no Phase 1 behavior change identified (2026-10-15)
 - PM execution decision: GO EXECUTION for shared-001 Phase 1; shared-004 remains out of scope
-- Current phase: Slice 2 Phase 1 implementation
+- Current phase: Phase 1-only commit authorized; awaiting Implementation Agent
 - Phase 0 baseline: verified 2026-10-06; all 11 squash tests passed
 - Planning handoff: GO; no blockers
-- Next required action: Send the single Implementation Agent prompt below
+- Phase 1 implementation: completed 2026-10-23; focused route/POST tests passed (7), full squash suite passed (12), no diagnostics
+- Reviewer and Challenge: GO to Verification and Release (2026-10-23); only finding is the explicitly transitional 827-line initializer, which remains a required follow-up before final release acceptance
+- Verification and Release: GO (2026-10-23); focused tests (7) and full squash suite (12) passed, URL configuration unchanged, rollback procedure clarified
+- Planning and Scope: GO to Verification and Release retry (2026-10-23); pre-commit stash preservation and post-commit single-SHA revert are now specified
+- Product Manager decision: GO NEXT PHASE for shared-001 Phase 1; authorize a Phase 1-only commit before Phase 2A, with no merge or deployment
+- Phase 1 changes remain uncommitted pending the authorized Implementation Agent action
+- Pre-cutover baseline tag: `slice2-pre-cutover` at `bc8b437fea8c4acca61f0c3da6ad733daa154a65`
+- Next required action: Send the single Phase 1 commit prompt to the Implementation Agent
 
 ## Active Working File (Temporary)
 
@@ -121,7 +128,7 @@ Final recommendation: Block Phase 1 start until required plan updates are applie
 Copy/paste exactly:
 
 ```
-You are the Implementation Agent. Execute only the approved Slice 2 Phase 1 package cutover for shared-001.
+You are the Implementation Agent. Create the explicitly authorized Phase 1-only commit for shared-001; do not start Phase 2A in this prompt.
 
 Read:
 - backlog/plan/plan.md
@@ -130,22 +137,31 @@ Read:
 - backlog/plan/WAY_OF_WORKING.md
 - backlog/to-do/shared-001-refactor-python-code.md
 - yamb_scores/squash/urls.py
-- yamb_scores/squash/views.py
+- yamb_scores/squash/views/__init__.py
 - yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py
 
-Context:
-- Product Manager decision: `GO EXECUTION` for shared-001 Phase 1. The earlier `NO-GO` is superseded because shared-004 is out of scope for this item.
-- Scope guard: work only on shared-001. Treat shared-004 and other adjacent work as out of scope; report them separately and do not expand or block this item without a demonstrated direct dependency and explicit PM scope approval.
-- Keep Phase 1 behavior-preserving: relocate intact `squash/views.py` to `squash/views/__init__.py`, adjust every app-relative import to parent-relative form (including all four function-local form imports), do not extract child modules, and leave `urls.py` unchanged.
-- The Security review identified an existing anonymous-write risk, but the package move introduces no security behavior change. Do not add auth or permission behavior in Phase 1.
+PM authorization and verification evidence:
+- PM decision: `GO NEXT PHASE`; an isolated Phase 1-only commit is authorized before Phase 2A. Merge and deployment are not authorized.
+- Focused route/POST suite passed 7 tests; full `squash.tests` passed 12 tests; no diagnostics. All 11 route resolver/export checks pass and `squash/urls.py` is unchanged.
+- The relocated module differs from the accepted baseline only by the seven required import-depth changes.
+- `HEAD` and `slice2-pre-cutover` resolve to `bc8b437fea8c4acca61f0c3da6ad733daa154a65`.
+- The rollback runbook specifies reversible pre-commit stash handling and post-commit revert of the recorded Phase 1 SHA.
+- The approximately 827-line initializer remains a required extraction before overall refactor completion or final release acceptance.
+- Authorized Phase 1 files only: `yamb_scores/squash/views.py` (deletion/rename), `yamb_scores/squash/views/__init__.py`, `yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py`, `backlog/plan/ROADMAP.md`, `backlog/plan/slices/slice-2-execution-temp.md`, and `backlog/plan/WAY_OF_WORKING.md`.
+
+Handoff:
+- Status: GO to execute the authorized Phase 1-only commit.
+- Blockers: None for the commit operation. The oversized initializer remains a follow-up before final release acceptance.
+- Next target: Implementation Agent.
+- Required inputs: the authorized file list, current staged/unstaged diff, verification evidence, rollback runbook, and baseline tag.
+- Scope check: shared-001 Phase 1 only. Do not include shared-004 or unrelated work.
 
 Task:
-1. Move the intact implementation to `squash/views/__init__.py` and update every relative import for the package depth, including the four function-local `.forms` imports.
-2. Keep behavior, models, forms, services, templates, and `squash/urls.py` unchanged. Do not extract functions into child modules or add auth/permission changes.
-3. Add/run `reverse()` and `resolve()` checks for every named squash route, verify `from squash import views` exposes exactly the 11 URL callables, rerun the existing GET/POST smoke tests, and run the full squash test suite.
-4. Before presenting a Phase 1 merge candidate, record/create the pre-cutover tag at the accepted baseline. Report changed files, test evidence, and any blockers; hand off to Reviewer and Challenge Agent. Do not commit or merge.
-5. Apply the Single-Item Scope Rule in WAY_OF_WORKING; do not include unrelated backlog work.
-
+1. Confirm the worktree contains no changes outside the authorized Phase 1 file list. Do not stage or commit anything else.
+2. Stage only the authorized files, inspect the staged names and diff, and create one Phase 1-only commit preserving the approved file-to-package cutover and resolver/export tests.
+3. Do not merge, deploy, alter application behavior, or start Phase 2A in this prompt.
+4. Report the commit SHA and verify `slice2-pre-cutover` remains the parent baseline. Then update the roadmap and active slice with the commit SHA and the single Phase 2A next prompt; do not create a second commit for those follow-up status updates.
+5. Keep the oversized initializer explicitly transitional and keep shared-004 and unrelated work out of scope.
 ```
 
 ## Runbook After Next Output

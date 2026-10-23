@@ -9,6 +9,14 @@ Owner: Planning Agent + Product Manager
 This document is the operational workflow for all slices and phases.
 Each completed turn must leave exactly one immediate next action.
 
+## Code Readability and Module Size Rule (Mandatory)
+
+- Code delivered by a slice must remain readable and followable by a human; passing tests or moving code between files does not by itself satisfy maintainability goals.
+- Python view modules should be split into cohesive, responsibility-focused modules and target no more than 200 lines, consistent with the strategic success criteria in `backlog/plan/plan.md`.
+- Keep package `__init__.py` files focused on lightweight setup and compatibility re-exports; do not use them to hide an oversized implementation module.
+- A phase may temporarily preserve an oversized module only when the approved active slice explicitly describes a behavior-preserving transitional step, names the follow-up extraction phase(s), and records why extraction is deferred. This exception is phase-scoped, not an end-state waiver.
+- Reviewers must assess readability, cohesion, and module size as well as behavior and test results. A transitional exception must be reported as such; it does not satisfy overall refactor completion or final release acceptance until the planned extraction target is met.
+
 ## Source-of-Truth Files
 
 - Strategic rules: `backlog/plan/plan.md`

@@ -4,9 +4,9 @@ from django.db.models import Sum, Count, Q, Case, When, IntegerField, F, Max
 from django.urls import reverse
 from django.http import JsonResponse
 from datetime import datetime, timedelta, date
-from .models import SquashMatch, SquashSet, SquashPlayer, SquashSession
-from .services.stats import get_leaderboard_stats
-from .forms import (
+from ..models import SquashMatch, SquashSet, SquashPlayer, SquashSession
+from ..services.stats import get_leaderboard_stats
+from ..forms import (
     SquashMatchForm,
     SquashSessionForm,
     SquashSessionSetEntryFormSet,
@@ -414,13 +414,13 @@ def player_list(request):
 def new_player(request):
     """Create a new player"""
     if request.method == 'POST':
-        from .forms import SquashPlayerForm
+        from ..forms import SquashPlayerForm
         form = SquashPlayerForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect(reverse('squash:player_list'))
     else:
-        from .forms import SquashPlayerForm
+        from ..forms import SquashPlayerForm
         form = SquashPlayerForm()
     
     return render(request, 'squash/new_player.html', {'form': form})
@@ -431,13 +431,13 @@ def edit_player(request, pk):
     player = get_object_or_404(SquashPlayer, pk=pk)
     
     if request.method == 'POST':
-        from .forms import SquashPlayerForm
+        from ..forms import SquashPlayerForm
         form = SquashPlayerForm(request.POST, instance=player)
         if form.is_valid():
             form.save()
             return redirect(reverse('squash:player_list'))
     else:
-        from .forms import SquashPlayerForm
+        from ..forms import SquashPlayerForm
         form = SquashPlayerForm(instance=player)
     
     return render(request, 'squash/edit_player.html', {'form': form, 'player': player})
