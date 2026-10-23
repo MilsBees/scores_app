@@ -1,0 +1,58 @@
+{% load static %}
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <base href="/">
+  <title>{{ texts.app_title }}</title>
+  <link rel="stylesheet" href="{% static 'wedding/css/board.css' %}">
+</head>
+<body class="board-page" data-board-url="{% url 'wedding:api_board' %}" data-cards-url="{% url 'wedding:api_cards' %}" data-card-url-template="{% url 'wedding:api_card' 0 %}" data-move-url-template="{% url 'wedding:api_move_card' 0 %}">
+  <header class="topbar">
+    <div>
+      <h1 id="board-heading"></h1>
+      <p id="overall-progress" class="overall-progress"></p>
+      <p id="sync-status" class="sync-status" role="status" hidden></p>
+    </div>
+    <form method="post" action="{% url 'wedding:logout' %}">
+      {% csrf_token %}
+      <button class="button subtle" id="logout-button" type="submit"></button>
+    </form>
+  </header>
+  <main class="board-main">
+    <nav id="filters" class="filters"></nav>
+    <div id="board" class="board" aria-live="polite"></div>
+  </main>
+  <div id="dialog-backdrop" class="dialog-backdrop" hidden>
+    <section class="card-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <form id="card-form">
+        {% csrf_token %}
+        <h2 id="dialog-title"></h2>
+        <label for="card-title" id="title-label"></label>
+        <input id="card-title" name="title" maxlength="200" required>
+        <label for="card-owner" id="owner-label"></label>
+        <select id="card-owner" name="owner"></select>
+        <label for="card-notes" id="notes-label"></label>
+        <textarea id="card-notes" name="notes" rows="3"></textarea>
+        <label for="card-due-date" id="due-date-label"></label>
+        <input id="card-due-date" name="due_date" type="date">
+        <fieldset>
+          <legend id="subtasks-label"></legend>
+          <div id="subtask-list"></div>
+          <button class="button subtle" id="add-subtask" type="button"></button>
+        </fieldset>
+        <div class="dialog-actions">
+          <button class="button primary" id="save-button" type="submit"></button>
+          <button class="button subtle" id="cancel-button" type="button"></button>
+          <button class="button danger" id="delete-button" type="button" hidden></button>
+        </div>
+        <p id="dialog-error" class="form-error" role="alert" hidden></p>
+      </form>
+    </section>
+  </div>
+  {{ texts|json_script:"wedding-texts" }}
+  <script src="{% static 'wedding/js/board.js' %}" defer></script>
+</body>
+</html>

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'sjoelen',
     'squash',
     'yamb',
+    'wedding',
 ]
 
 MIDDLEWARE = [

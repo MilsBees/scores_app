@@ -68,10 +68,23 @@ This chain is mandatory. No agent is skipped.
 10. Verification and Release Agent (Evidence Gate)
     - Confirms tests, rollback readiness, and go/no-go recommendation.
     - If BLOCK: back to Implementation Agent or Planning Agent (if scope is unclear).
-    - If GO: next target is Product Manager Agent.
-11. Product Manager Agent (Phase Decision)
+   - If GO: next target is Human Verification and Acceptance when the gate applies; otherwise record N/A and the reason, then hand off to Product Manager Agent.
+11. Human Verification and Acceptance (Product Owner)
+   - Required before the next phase, merge, or release when a change can affect user-visible pages, navigation, UI behavior, or an end-to-end workflow. This includes refactors of routed views even when behavior is intended to remain unchanged.
+   - Product Manager provides a local run command, exact pages/workflows to check, and expected results. The user runs the app locally and responds `GO`, `FIXES`, or `NO-GO`.
+   - If `FIXES`: return to Implementation Agent with the observed issue. If `NO-GO`: return to Product Manager/Planning for a decision. If `GO`: next target is Product Manager Agent for the phase decision.
+   - Do not advance to another phase, merge, or release until the user explicitly returns `GO`.
+   - Mark N/A only for changes with no user-visible or runtime workflow impact; record the rationale and supporting automated evidence in both planning files.
+12. Product Manager Agent (Phase Decision)
     - Decides `GO NEXT PHASE`, `GO FIXES`, or `NO-GO`.
     - Must leave one immediate next action (`PROMPT` or `DECISION`).
+
+## Human Verification Prompt Requirements
+
+- The Product Manager's human-verification prompt must be copy/paste-ready and mirrored in the roadmap and active slice.
+- Include the local startup command, local URL, specific pages/workflows, and a short expected-result checklist. Reuse repository setup instructions and avoid production data or irreversible mutations.
+- Ask for one explicit response: `GO`, `FIXES` with observed details, or `NO-GO`.
+- Keep the phase status at human verification pending until the user responds. A green test suite or reviewer signoff does not substitute for this gate.
 
 ## Handoff Artifact Contract
 

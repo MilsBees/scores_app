@@ -7,4 +7,5 @@ urlpatterns = [
     path('sjoelen/', include('sjoelen.urls')),
     path('squash/', include('squash.urls')),
     path('yamb/', include('yamb.urls', namespace='yamb')),
+    path('', include('wedding.urls')),
 ]

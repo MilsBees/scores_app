@@ -21,7 +21,7 @@
 - Auth and Domain Model: N/A for Phase 1 model/auth changes; GO to Security and Permissions assessment (2026-10-15)
 - Security and Permissions: reported pre-existing anonymous-write risk; no Phase 1 behavior change identified (2026-10-15)
 - PM execution decision: GO EXECUTION for shared-001 Phase 1; shared-004 remains out of scope
-- Current phase: Phase 1-only commit authorized; awaiting Implementation Agent
+- Current phase: Slice 2 Phase 2A implementation (matches split)
 - Phase 0 baseline: verified 2026-10-06; all 11 squash tests passed
 - Planning handoff: GO; no blockers
 - Phase 1 implementation: completed 2026-10-23; focused route/POST tests passed (7), full squash suite passed (12), no diagnostics
@@ -29,9 +29,11 @@
 - Verification and Release: GO (2026-10-23); focused tests (7) and full squash suite (12) passed, URL configuration unchanged, rollback procedure clarified
 - Planning and Scope: GO to Verification and Release retry (2026-10-23); pre-commit stash preservation and post-commit single-SHA revert are now specified
 - Product Manager decision: GO NEXT PHASE for shared-001 Phase 1; authorize a Phase 1-only commit before Phase 2A, with no merge or deployment
-- Phase 1 changes remain uncommitted pending the authorized Implementation Agent action
+- Phase 1 commit: `715b5be50a1d2e84603097140f30e5f146df8e92`; parent is the accepted baseline `bc8b437fea8c4acca61f0c3da6ad733daa154a65`
+- Human Verification and Acceptance: GO (2026-10-23); Product Owner confirmed Phase 1 works locally
+- Product Manager phase decision: GO NEXT PHASE for shared-001 Phase 2A (matches split); no Phase 2A commit, merge, or deployment is authorized yet
 - Pre-cutover baseline tag: `slice2-pre-cutover` at `bc8b437fea8c4acca61f0c3da6ad733daa154a65`
-- Next required action: Send the single Phase 1 commit prompt to the Implementation Agent
+- Next required action: Send the single Phase 2A Implementation Agent prompt below
 
 ## Active Working File (Temporary)
 
@@ -128,7 +130,7 @@ Final recommendation: Block Phase 1 start until required plan updates are applie
 Copy/paste exactly:
 
 ```
-You are the Implementation Agent. Create the explicitly authorized Phase 1-only commit for shared-001; do not start Phase 2A in this prompt.
+You are the Implementation Agent. Execute only the approved Slice 2 Phase 2A matches split for shared-001.
 
 Read:
 - backlog/plan/plan.md
@@ -140,28 +142,26 @@ Read:
 - yamb_scores/squash/views/__init__.py
 - yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py
 
-PM authorization and verification evidence:
-- PM decision: `GO NEXT PHASE`; an isolated Phase 1-only commit is authorized before Phase 2A. Merge and deployment are not authorized.
-- Focused route/POST suite passed 7 tests; full `squash.tests` passed 12 tests; no diagnostics. All 11 route resolver/export checks pass and `squash/urls.py` is unchanged.
-- The relocated module differs from the accepted baseline only by the seven required import-depth changes.
-- `HEAD` and `slice2-pre-cutover` resolve to `bc8b437fea8c4acca61f0c3da6ad733daa154a65`.
-- The rollback runbook specifies reversible pre-commit stash handling and post-commit revert of the recorded Phase 1 SHA.
-- The approximately 827-line initializer remains a required extraction before overall refactor completion or final release acceptance.
-- Authorized Phase 1 files only: `yamb_scores/squash/views.py` (deletion/rename), `yamb_scores/squash/views/__init__.py`, `yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py`, `backlog/plan/ROADMAP.md`, `backlog/plan/slices/slice-2-execution-temp.md`, and `backlog/plan/WAY_OF_WORKING.md`.
+Context:
+- Product Owner returned `GO` for human verification of committed Phase 1; PM decision is `GO NEXT PHASE` for Phase 2A.
+- Phase 1 commit: `715b5be50a1d2e84603097140f30e5f146df8e92`.
+- Scope only: move `index`, `new_match`, `new_session`, and `match_list` to `views/matches.py`, preserving behavior and exporting all URL callables from `views/__init__.py`.
+- Preserve URLs, route names, forms, models, services, templates, and auth behavior. Do not split player, leaderboard, H2H, or statistics views during Phase 2A.
+- Continue treating the oversized `views/__init__.py` as transitional; all planned modules must be extracted before refactor completion or final release acceptance.
 
 Handoff:
-- Status: GO to execute the authorized Phase 1-only commit.
-- Blockers: None for the commit operation. The oversized initializer remains a follow-up before final release acceptance.
+- Status: GO to Phase 2A implementation.
+- Blockers: None for this phase.
 - Next target: Implementation Agent.
-- Required inputs: the authorized file list, current staged/unstaged diff, verification evidence, rollback runbook, and baseline tag.
-- Scope check: shared-001 Phase 1 only. Do not include shared-004 or unrelated work.
+- Required inputs: Phase 1 commit, current views package, squash URLs, route/POST tests, and shared-001 acceptance criteria.
+- Scope check: shared-001 Phase 2A only. shared-004 and other backlog work remain out of scope.
 
 Task:
-1. Confirm the worktree contains no changes outside the authorized Phase 1 file list. Do not stage or commit anything else.
-2. Stage only the authorized files, inspect the staged names and diff, and create one Phase 1-only commit preserving the approved file-to-package cutover and resolver/export tests.
-3. Do not merge, deploy, alter application behavior, or start Phase 2A in this prompt.
-4. Report the commit SHA and verify `slice2-pre-cutover` remains the parent baseline. Then update the roadmap and active slice with the commit SHA and the single Phase 2A next prompt; do not create a second commit for those follow-up status updates.
-5. Keep the oversized initializer explicitly transitional and keep shared-004 and unrelated work out of scope.
+1. Move `index`, `new_match`, `new_session`, and `match_list` from `views/__init__.py` into `views/matches.py` without behavior changes; use parent-relative imports for app components.
+2. Keep `views/__init__.py` as a lightweight compatibility re-export for all 11 URL callables, and leave `urls.py` unchanged.
+3. Run match/session flow tests, all route GET/POST smoke checks, all 11 reverse/resolve/export checks, and the full squash test suite.
+4. Report changed files, tests, and blockers; hand off to Reviewer and Challenge. Do not commit, merge, deploy, or start Phase 2B in this prompt.
+5. Keep all work within shared-001 Phase 2A; do not change auth/permissions or work on other views.
 ```
 
 ## Runbook After Next Output
