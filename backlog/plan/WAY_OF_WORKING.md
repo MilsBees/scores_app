@@ -15,9 +15,18 @@ Each completed turn must leave exactly one immediate next action.
 - Session launcher: `backlog/plan/ROADMAP.md`
 - Active slice log: `backlog/plan/slices/<active-slice>-execution-temp.md`
 
+## Single-Item Scope Rule (Mandatory)
+
+- Each active execution phase works on exactly one identified backlog item. The Product Manager and Planning Agent must record its ID, in-scope work, out-of-scope work, and acceptance checks in the active slice context.
+- At every handoff, agents compare findings and proposed work against that active item. Classify each material finding as in-scope, a demonstrated direct dependency, or unrelated/out-of-scope.
+- An unrelated or out-of-scope finding must be documented and routed for separate Product Manager/Planning triage. By itself, it does not expand or block the active item.
+- An agent who believes an out-of-scope issue blocks the active item must explain the concrete dependency or the affected acceptance criterion/non-negotiable and request a Product Manager decision. Agents do not change scope or authorize cross-item work themselves.
+- Any approved scope change returns to Planning to update the backlog coverage, acceptance checks, active slice, and next prompt before implementation continues.
+- Implementation Agents work only on the approved item and phase. Work from another backlog item requires explicit Product Manager approval and updated planning records.
+
 ## Canonical Handoff Chain (Authoritative)
 
-This chain is mandatory. No agent is skipped.
+This chain is mandatory. No agent is skipped. 
 
 1. Product Manager Agent (Intake)
    - Confirms active slice, phase scope, and backlog coverage.
@@ -58,13 +67,14 @@ This chain is mandatory. No agent is skipped.
 
 ## Handoff Artifact Contract
 
-Each handoff must include all 5 items:
+Each handoff must include all 6 items:
 
 1. Status: `GO`, `BLOCK`, `N/A`, or `DONE`
 2. Evidence summary
 3. Blockers (or `None`)
 4. Next target agent
 5. Required inputs for next agent
+6. Scope check: active backlog item, whether the finding/work is in scope, and any demonstrated direct dependency or separate out-of-scope follow-up
 
 Missing any item means handoff is invalid.
 

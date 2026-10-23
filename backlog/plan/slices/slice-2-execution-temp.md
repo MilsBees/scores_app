@@ -128,10 +128,10 @@ No-go if any are true:
 
 ## Live Execution Log (Update Each Prompt)
 
-Current phase: Phase 1 Architecture and Refactor review
+Current phase: Slice 2 Phase 1 implementation
 Last completed phase: Phase 0
-Open blockers: 0 for the Architecture design review; implementation remains gated
-Next required action: Send the Architecture and Refactor Agent prompt recorded below.
+Open blockers: None for the shared-001 package cutover; preserve behavior and keep shared-004 out of scope
+Next required action: Send the Implementation Agent prompt recorded below.
 
 ## Product Manager + Planning Handoff (2026-10-06)
 
@@ -142,6 +142,55 @@ Next required action: Send the Architecture and Refactor Agent prompt recorded b
 - Preconditions/findings for Architecture review: none block design review. Before implementation is eligible, add/run the explicit Phase 1 URL-resolution and import-compatibility checks, rerun Phase 0 checks, and create the required pre-cutover tag before the merge candidate. The existing smoke tests check route responses and redirects, not URL resolver mapping or the re-export contract.
 - Next target agent: Architecture and Refactor Agent.
 - Required inputs: plan, roadmap, this slice log, adopted way of working, umbrella refactor backlog item, current `squash/urls.py`, `squash/views.py`, and route/POST smoke tests.
+
+## Architecture and Refactor Review (2026-10-06)
+
+- Status: GO to Reviewer and Challenge pre-implementation review. This is design approval only; it does not authorize implementation.
+- Evidence: `squash/urls.py` imports `.views` and references exactly 11 callables: `index`, `new_match`, `new_session`, `match_list`, `leaderboard`, `h2h`, `statistics`, `player_list`, `new_player`, `edit_player`, and `delete_player`. All are defined in the existing `squash/views.py`. The app's target structure specifies `views/__init__.py` re-exports for URL compatibility.
+- Phase 1 mapping: move the intact implementation to `squash/views/__init__.py`; change every app-relative import to parent-relative form, including the four function-local `from .forms import SquashPlayerForm` statements. Do not split functions into child modules during Phase 1.
+- Later target mapping: `matches.py` owns `index`, `new_match`, `new_session`, `match_list`; `players.py` owns `player_list`, `new_player`, `edit_player`, `delete_player`; `leaderboard.py`, `h2h.py`, and `statistics.py` each own their matching view. As those later phases extract functions, `views/__init__.py` should explicitly re-export all 11 callables to preserve `urls.py` and `from squash import views` compatibility. Child modules should import app components through `..models`, `..forms`, and `..services` and avoid importing their parent `views` package, preventing circular imports.
+- Compatibility risk: package relocation changes the meaning of relative imports; failing to adjust module-level or function-local import depth breaks module loading or affected requests even if URL patterns remain unchanged. Future module extraction can also accidentally omit or shadow a re-export.
+- Test gates: existing 11-test squash suite passed on 2026-10-06 and covers GET route reachability plus POST redirect flows. It does not currently prove resolver-to-callable mapping or the complete `views` export contract. Before Phase 1 completion, retain all existing tests and add `reverse()`/`resolve()` assertions for every named URL plus an explicit assertion that the 11 URL callables are callable and exposed by `from squash import views`.
+- Rollback/preconditions: no blocker to challenge review. Before the Phase 1 merge candidate, create a pre-cutover tag at the accepted baseline; keep the documented commit-level revert and post-rollback squash smoke checks. Implementation remains gated on Reviewer GO, required downstream domain/security N/A-or-impact gates, and explicit PM GO EXECUTION.
+- Next target agent: Reviewer and Challenge Agent.
+- Required inputs: plan, roadmap, this slice log, adopted way of working, shared-001, `squash/urls.py`, `squash/views.py`, and current squash route/POST smoke tests.
+
+## Reviewer and Challenge Review (2026-10-15)
+
+- Status: GO to Auth and Domain Model impact assessment. This advances the required review chain only; it is not PM approval to implement.
+- Findings by severity:
+	- Medium: The existing 11-test baseline exercises GET route reachability and POST redirects, but does not prove URL resolver-to-view mapping or the full `views` re-export contract. The Phase 1 plan explicitly requires `reverse()`/`resolve()` checks for every named route and an assertion that the exact 11 URL callables are exposed by `from squash import views`; these remain mandatory before Phase 1 completion.
+	- Low: The rollback runbook gives alternatives for recovery after the initial commit revert. Before the merge candidate, record the accepted baseline tag and commit, use commit-level revert as the rollback path, and retain post-rollback smoke validation evidence.
+- Evidence: `urls.py` references 11 callables through `.views`; the route smoke test reverses all 11 routes and checks GET responses, while POST tests check redirects. The current module has three module-level relative imports and four function-local `.forms` imports; package relocation requires parent-relative imports for all seven. The plan prohibits behavior extraction in Phase 1 and keeps `urls.py` unchanged. The documented squash suite passed all 11 tests on 2026-10-06; a current rerun was unavailable because Django is not installed in the active Python environment.
+- Blockers: None to the Auth and Domain Model handoff. Before Phase 1 completion, the resolver/export checks, existing smoke checks, and full squash suite must pass; create the pre-cutover tag before the merge candidate. Security review and explicit PM `GO EXECUTION` remain required before implementation.
+- Next target agent: Auth and Domain Model Agent.
+- Required inputs: `backlog/plan/plan.md`, this roadmap, this slice file, `backlog/plan/WAY_OF_WORKING.md`, `backlog/to-do/shared-001-refactor-python-code.md`, `yamb_scores/squash/urls.py`, `yamb_scores/squash/views.py`, and `yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py`.
+
+## Auth and Domain Model Impact (2026-10-15)
+
+- Status: N/A for domain model, authentication, or migration changes in Phase 1; GO to Security and Permissions assessment. This is not approval to implement.
+- Evidence: The squash models contain no user/account relationship, and the forms operate only on existing squash models. The Phase 1 package relocation changes no schema or data behavior, so no migration is indicated. The views contain no `request.user` checks or local auth/permission decorators. Project settings include `AuthenticationMiddleware` but no global login-required middleware. The separate shared-004 backlog defines anonymous users as read-only and registered/admin users as permitted writers.
+- Security handoff note: The current write views appear reachable without a local authentication/permission check, and the project settings show no global login gate. This is a pre-existing access-control concern, not caused by the package move; Security should assess it against shared-004 and keep any remediation out of Phase 1 unless Planning explicitly changes scope.
+- Blockers: None to the Security handoff. Security review and explicit PM `GO EXECUTION` remain required before implementation.
+- Next target agent: Security and Permissions Agent.
+- Required inputs: `backlog/plan/plan.md`, this roadmap, this slice file, `backlog/plan/WAY_OF_WORKING.md`, `backlog/to-do/shared-001-refactor-python-code.md`, `backlog/to-do/shared-004-login-system-unified-player-model.md`, `yamb_scores/config/settings.py`, `yamb_scores/config/urls.py`, `yamb_scores/squash/urls.py`, `yamb_scores/squash/views.py`, `yamb_scores/squash/models.py`, `yamb_scores/squash/forms.py`, and `yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py`.
+
+## Security and Permissions Review (2026-10-15)
+
+- Status: BLOCK pending PM execution decision. Security impact introduced by the package-only relocation is N/A; a high-severity pre-existing authorization gap conflicts with shared-004.
+- Finding (High): Anonymous users can submit squash mutations. `new_match`, `new_session`, `new_player`, `edit_player`, and `delete_player` have no local authentication/permission checks; the corresponding handlers save or delete model records. `AuthenticationMiddleware` only makes `request.user` available and does not require login, and no global login-required middleware is configured. The smoke tests use Django's unauthenticated test client for these POST flows. Shared-004 explicitly says anonymous users may view data but may not write.
+- Scope: This gap predates Phase 1 and is not caused by relocating the intact view module. Do not add auth/permission behavior as part of the package cutover. Planning should decide whether to create or advance a separate security/auth slice before implementation proceeds.
+- Blockers: PM must record `GO EXECUTION` with explicit acceptance of the unchanged risk, or `NO-GO` and route the authorization remediation through Planning and Scope. No code implementation is approved by this review.
+- Next target agent: Product Manager Agent.
+- Required inputs: `backlog/plan/plan.md`, this roadmap, this slice file, `backlog/plan/WAY_OF_WORKING.md`, `backlog/to-do/shared-001-refactor-python-code.md`, `backlog/to-do/shared-004-login-system-unified-player-model.md`, `yamb_scores/config/settings.py`, `yamb_scores/config/urls.py`, `yamb_scores/squash/urls.py`, `yamb_scores/squash/views.py`, `yamb_scores/squash/models.py`, `yamb_scores/squash/forms.py`, and `yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py`.
+
+## Product Manager Execution Decision (2026-10-15)
+
+- Decision: `GO EXECUTION` for Slice 2 Phase 1 under `shared-001`; this supersedes the initial `NO-GO` recorded earlier in this review cycle.
+- Rationale: `shared-001` authorizes a behavior-preserving views refactor and explicitly leaves models/forms/URLs unchanged; the planning handoff marks login/player work out of scope. The anonymous-write finding is pre-existing, and the package relocation introduces no authorization change. `shared-004` remains out of scope and must not be implemented as part of Phase 1.
+- Blockers: None for this scoped refactor. Preserve current behavior and security posture. Existing Phase 1 resolver/export checks, GET/POST smoke tests, full squash suite, and pre-cutover tag precondition remain mandatory.
+- Next target agent: Implementation Agent.
+- Required inputs: `backlog/plan/plan.md`, this roadmap, this slice file, `backlog/plan/WAY_OF_WORKING.md`, `backlog/to-do/shared-001-refactor-python-code.md`, `yamb_scores/squash/urls.py`, `yamb_scores/squash/views.py`, and `yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py`.
 
 ### Decision Notes
 
@@ -193,7 +242,7 @@ Persistence rule:
 Copy/paste exactly:
 
 ```
-You are the Architecture and Refactor Agent.
+You are the Implementation Agent. Execute only the approved Slice 2 Phase 1 package cutover for shared-001.
 
 Read:
 - backlog/plan/plan.md
@@ -206,24 +255,15 @@ Read:
 - yamb_scores/squash/tests/views/test_route_smoke_and_post_flows.py
 
 Context:
-- WAY_OF_WORKING v2 is adopted (PM GO).
-- PM intake and Planning handoff are complete (GO, 2026-10-06).
-- Active work is Slice 2 Phase 1: package cutover only, with no behavior changes.
-- The current squash test suite passed (11 tests) on 2026-10-06.
+- Product Manager decision: `GO EXECUTION` for shared-001 Phase 1. The earlier `NO-GO` is superseded because shared-004 is out of scope for this item.
+- Scope guard: work only on shared-001. Treat shared-004 and other adjacent work as out of scope; report them separately and do not expand or block this item without a demonstrated direct dependency and explicit PM scope approval.
+- Keep Phase 1 behavior-preserving: relocate intact `squash/views.py` to `squash/views/__init__.py`, adjust every app-relative import to parent-relative form (including all four function-local form imports), do not extract child modules, and leave `urls.py` unchanged.
+- The Security review identified an existing anonymous-write risk, but the package move introduces no security behavior change. Do not add auth or permission behavior in Phase 1.
 
 Task:
-1. Review the Phase 1 package-cutover design without implementing it.
-2. Recommend the safe file-to-package mapping and complete views/__init__.py re-export set needed to keep urls.py unchanged.
-3. Assess URL/import compatibility risks, test gates, rollback shape, and any remaining preconditions before Reviewer and Challenge review.
-4. Keep the scope to package cutover only: no behavior, URL, template, model, or service changes.
-5. Return one handoff artifact with: Status, evidence summary, blockers (or None), next target agent, and required inputs.
-6. Provide exactly one single next prompt to send, targeting the Reviewer and Challenge Agent. Do not implement code.
-
-Output format:
-- Status (GO/BLOCK/N/A)
-- Evidence summary
-- Blockers
-- Next target agent
-- Required inputs for next agent
-- Single next prompt to send
+1. Move the intact implementation to `squash/views/__init__.py` and update every relative import for the package depth, including the four function-local `.forms` imports.
+2. Keep behavior, models, forms, services, templates, and `squash/urls.py` unchanged. Do not extract functions into child modules or add auth/permission changes.
+3. Add/run `reverse()` and `resolve()` checks for every named squash route, verify `from squash import views` exposes exactly the 11 URL callables, rerun the existing GET/POST smoke tests, and run the full squash test suite.
+4. Before presenting a Phase 1 merge candidate, record/create the pre-cutover tag at the accepted baseline. Report changed files, test evidence, and any blockers; hand off to Reviewer and Challenge Agent. Do not commit or merge.
+5. Apply the Single-Item Scope Rule in WAY_OF_WORKING; do not include unrelated backlog work.
 ```
