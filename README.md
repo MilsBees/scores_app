@@ -78,10 +78,18 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## Running the tests
+
+```powershell
+cd yamb_scores
+python manage.py test
+```
+
+The same tests run automatically on GitHub for every push and pull request.
+
 ## Way of Working
 
-- See the backlog folder for a list of open work items
-- If you have other ideas, feel free to add them to the backlog
-- Create a merge request for whatever you have added
-- If you notice something missing in this file to get it working locally, please update the readme accordingly!
-- Start all requests with Planning + Product Manager agent intake and backlog triage before any implementation work.
+- How we plan, build, review and ship: [`backlog/README.md`](backlog/README.md)
+- What's next: [`backlog/ROADMAP.md`](backlog/ROADMAP.md)
+- Deploying to PythonAnywhere: [`docs/DEPLOY.md`](docs/DEPLOY.md)
+- If you notice something missing in this file to get it working locally, please update the README!

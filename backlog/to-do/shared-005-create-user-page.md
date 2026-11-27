@@ -1,10 +1,10 @@
-# Histograms for different set types in Squash App
+# User profile page
 
 ### Who
 
 <!--Who does this benefit or who will this affect? Who should be able to view this?-->
 
-- Players with an account
+- Players with an account (needs shared-004b)
 
 ### What
 

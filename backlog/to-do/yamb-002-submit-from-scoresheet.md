@@ -1,4 +1,4 @@
-# Histograms for different set types in Squash App
+# Submit a new Yamb game directly from the scoresheet
 
 ### Who
 

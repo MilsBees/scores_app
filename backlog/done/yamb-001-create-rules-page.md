@@ -1,4 +1,4 @@
-# Histograms for different set types in Squash App
+# Rules page for Yamb
 
 ### Who
 
