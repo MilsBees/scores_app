@@ -157,3 +157,19 @@ Current: 1 file, ~550 lines, 16 functions
 - `get_row_extremes()` — highest/lowest per yamb row (reusable for statistics)
 - `get_all_players_with_stats(min_games=0)` — annotated player list
 - `get_player_consistency(min_games=2)` — std dev for consistency ranking
+
+---
+
+## Status and remaining work
+
+Ship one PR per app, in this order: squash → yamb → sjoelen. Do shared-006 first, so every app has route tests before its views move.
+
+**Squash** (started; the tests are in `squash/tests/views/test_route_smoke_and_post_flows.py`):
+- [x] Package cutover: `views.py` → `views/__init__.py`, behaviour unchanged (commit `715b5be`)
+- [ ] Split into `matches.py`, `players.py`, `leaderboard.py`, `h2h.py`, `statistics.py`. `views/__init__.py` only re-exports the 11 URL callables; `urls.py` is unchanged.
+- [ ] Move pure calculations (H2H aggregation, statistics box-plot data and extremes) into `services/`, with unit tests.
+- [ ] A statistics context-contract test pins the template context keys: `total_matches`, `total_sets`, `incomplete_sets`, `unique_players_count`, `sets_11_point`, `sets_21_point`, `set_type_filter`, `include_incomplete`, `player_performance_data`, `player_stats`, `player_box_data`, `player_box_data_11`, `player_box_data_21`, `matches_by_date`, `match_extremes`
+
+**Yamb:** not started. **Sjoelen:** not started.
+
+Done means: no view module over about 200 lines, `__init__.py` files are re-exports only, the full suite is green, and the owner has clicked through every page of the app.

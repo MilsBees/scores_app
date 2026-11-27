@@ -1,4 +1,4 @@
-# Histograms for different set types in Squash App
+# Set type and incomplete sets for Squash matches
 
 ### Who
 
