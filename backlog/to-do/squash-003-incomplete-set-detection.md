@@ -27,3 +27,5 @@
 
 - To confirm at the planning step: does "win by 2" match your house rules for both set types? Should a manual "incomplete" tick only ever *add* incompleteness, or also be able to mark an auto-detected incomplete set as complete?
 - Has a migration, so back up the DB before deploying.
+- Related (found by shared-006): with no set type selected, the statistics page always shows 0 incomplete sets (`incomplete_sets` is only counted when a set type filter is set, `squash/views/__init__.py`). Decide whether the overall view should show the real count.
+- When this is fixed, remove the `@expectedFailure` markers in `squash/tests/models/test_set_completeness.py` and `squash/tests/admin/test_match_admin.py`.
