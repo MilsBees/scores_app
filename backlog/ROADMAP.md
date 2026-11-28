@@ -16,16 +16,17 @@ There are no deadlines; this is a hobby project worked on in bursts.
 
 ## Now
 
-1. [`shared-006`](to-do/shared-006-test-safety-net.md): Test safety net: smoke tests for every route in every app, plus a registry of write URLs
-2. [`shared-007`](to-do/shared-007-production-hardening.md): Production settings hardening
-3. [`shared-004a`](to-do/shared-004a-login-and-write-protection.md): Login page, and require login for every write action
+1. [`shared-006`](to-do/shared-006-test-safety-net.md): Test safety net: smoke tests for every route in every app, data-rule tests, plus a registry of write URLs
+2. [`squash-003`](to-do/squash-003-incomplete-set-detection.md): Fix incomplete-set detection (the 22-22 bug). This is a bug fix for wrong stats data. It goes straight after shared-006, whose tests will expose it.
+3. [`shared-007`](to-do/shared-007-production-hardening.md): Production settings hardening
+4. [`shared-004a`](to-do/shared-004a-login-and-write-protection.md): Login page, and require login for every write action
 
 ## Next
 
-4. [`shared-004b`](to-do/shared-004b-unified-player-model.md): Unified player model
-5. [`shared-004c`](to-do/shared-004c-ownership-permissions.md): Ownership-based edit and delete permissions
-6. [`shared-004d`](to-do/shared-004d-invite-registration.md): Request login and invite registration
-7. [`shared-001`](to-do/shared-001-refactor-python-code.md): Finish splitting the views (squash → yamb → sjoelen, one PR per app)
+5. [`shared-004b`](to-do/shared-004b-unified-player-model.md): Unified player model
+6. [`shared-004c`](to-do/shared-004c-ownership-permissions.md): Ownership-based edit and delete permissions
+7. [`shared-004d`](to-do/shared-004d-invite-registration.md): Request login and invite registration
+8. [`shared-001`](to-do/shared-001-refactor-python-code.md): Finish splitting the views (squash → yamb → sjoelen, one PR per app)
 
 ## Later
 
