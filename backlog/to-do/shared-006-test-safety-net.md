@@ -19,6 +19,8 @@
 - [ ] Every named route in `home`, `yamb`, `sjoelen` and `squash` has a GET test that returns 200 (or the expected redirect), **with realistic data present**, so leaderboards, statistics, H2H and dashboards actually compute something.
 - [ ] Squash: the existing smoke tests are kept; add data-filled GETs for leaderboard, H2H and statistics, including the `set_type` and `include_incomplete` toggles.
 - [ ] Every create, edit and delete flow in every app has a POST happy-path test that checks the database changed as expected.
+- [ ] Besides "the page loads", add **data-rule tests** for each app's model logic (for example squash set completeness, yamb scoresheet totals, sjoelen score calculation), with edge cases such as ties and boundary scores. For squash, these are the tests from [`squash-003`](squash-003-incomplete-set-detection.md), including the 22-22 set. That bug proves a page can load fine while the data is wrong.
+- [ ] Admin save flows for the models people correct by hand (at least squash matches with sets) have a test showing the saved values are exactly what was entered.
 - [ ] A project-wide test lists every write URL across all apps (squash included) and fails if a new URL pattern appears that isn't classified as "read" or "write". That way new write views can't slip through unnoticed.
 - [ ] The full suite passes in CI.
 
