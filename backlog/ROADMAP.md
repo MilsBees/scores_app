@@ -29,7 +29,7 @@ There are no deadlines; this is a hobby project worked on in bursts.
 
 ## Later
 
-- [`squash-004`](to-do/squash-004-second-session-same-date.md): Can't add more sets to a session later the same day
+- [`squash-004`](to-do/squash-004-second-session-same-date.md): Allow more than one session on the same day (morning + afternoon)
 - [`sjoelen-002`](to-do/sjoelen-002-blank-rounds-in-leaderboard.md): Blank rounds give inconsistent leaderboard numbers
 - [`shared-003`](to-do/shared-003-improve-statistics-speed.md): Statistics speed and instant toggles
 - [`yamb-003`](to-do/yamb-003-investigate-game-vs-scoresheet-model-overlap.md): Investigate the Yamb Game vs Scoresheet overlap

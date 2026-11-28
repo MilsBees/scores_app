@@ -99,16 +99,19 @@ class SquashSessionPostTests(TestCase):
         )
 
     @expectedFailure  # Known bug: squash-004. Remove this marker when it's fixed.
-    def test_second_session_entry_on_same_date_adds_to_existing_match(self):
-        # The view is written to add to an existing session (get_or_create), but the
-        # session form rejects the date first: "Squash session with this Date played already exists."
+    def test_second_session_on_same_date_is_a_separate_session(self):
+        # A morning and an afternoon session on the same day are two sessions.
+        # Today the date must be unique, so the second one is rejected:
+        # "Squash session with this Date played already exists."
         self.post_session([(self.milan, self.guus, "11", "7")])
         response = self.post_session([(self.milan, self.guus, "5", "11")])
 
         self.assertRedirects(response, reverse("squash:match_list"))
-        self.assertEqual(SquashSession.objects.count(), 1)
-        match = SquashMatch.objects.get()
-        self.assertEqual(list(match.sets.values_list("set_number", flat=True)), [1, 2])
+        self.assertEqual(SquashSession.objects.filter(date_played="2026-08-09").count(), 2)
+        self.assertEqual(SquashMatch.objects.count(), 2)
+        for match in SquashMatch.objects.all():
+            with self.subTest(match=match.pk):
+                self.assertEqual(list(match.sets.values_list("set_number", flat=True)), [1])
 
     def test_session_set_type_is_stored_on_match(self):
         self.post_session([(self.milan, self.guus, "21", "15")], set_type="21")
